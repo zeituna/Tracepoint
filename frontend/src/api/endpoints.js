@@ -1,0 +1,65 @@
+export const API_ENDPOINTS = {
+  AUTH: {
+    LOGIN: '/auth/login',
+    REGISTER: '/auth/register',
+    LOGOUT: '/auth/logout',
+    REFRESH: '/auth/refresh',
+    FORGOT_PASSWORD: '/auth/forgot-password',
+    RESET_PASSWORD: '/auth/reset-password',
+    VERIFY_OTP: '/auth/verify-otp',
+    ME: '/auth/me',
+  },
+  REPORTS: {
+    BASE: '/reports',
+    DETAIL: (id) => `/reports/${id}`,
+    STATUS: (id) => `/reports/${id}/status`,
+    COMMENT: (id) => `/reports/${id}/comments`,
+    SEARCH: '/reports/search',
+  },
+  TRACKING: {
+    BASE: '/tracking',
+    LOCATION: (id) => `/tracking/${id}`,
+    HISTORY: (id) => `/tracking/${id}/history`,
+  },
+  FACIAL: {
+    UPLOAD: '/facial/upload',
+    MATCH: '/facial/match',
+    GALLERY: '/facial/gallery',
+    DELETE: (id) => `/facial/${id}`,
+  },
+  MESSAGES: {
+    BASE: '/messages',
+    CONVERSATION: (id) => `/messages/conversation/${id}`,
+    UNREAD: '/messages/unread',
+    MARK_READ: (id) => `/messages/${id}/read`,
+  },
+  ALERTS: {
+    BASE: '/alerts',
+    DETAIL: (id) => `/alerts/${id}`,
+    READ: (id) => `/alerts/${id}/read`,
+    READ_ALL: '/alerts/read-all',
+  },
+  USERS: {
+    BASE: '/users',
+    DETAIL: (id) => `/users/${id}`,
+    PROFILE: '/users/profile',
+    CHANGE_PASSWORD: '/users/change-password',
+  },
+  ORGANIZATIONS: {
+    BASE: '/organizations',
+    DETAIL: (id) => `/organizations/${id}`,
+    MEMBERS: (id) => `/organizations/${id}/members`,
+  },
+  CASES: {
+    BASE: '/cases',
+    DETAIL: (id) => `/cases/${id}`,
+    STATUS: (id) => `/cases/${id}/status`,
+    TIMELINE: (id) => `/cases/${id}/timeline`,
+  },
+  STATISTICS: {
+    DASHBOARD: '/statistics/dashboard',
+    REPORTS: '/statistics/reports',
+    CASES: '/statistics/cases',
+    USERS: '/statistics/users',
+  },
+}
