@@ -1,1 +1,1 @@
-export { NotificationContextProvider as NotificationProvider, useNotificationContext } from './NotificationContext'
+export { NotificationContextProvider as NotificationProvider } from './NotificationContext'

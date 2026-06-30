@@ -1,18 +1,11 @@
 import React, { useState } from 'react'
+import { Plus, Search, Filter, Edit, Trash2, Eye, ChevronDown } from 'lucide-react'
 
 const Reports = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState('all')
   const [showModal, setShowModal] = useState(false)
   const [editingReport, setEditingReport] = useState(null)
-  const [formData, setFormData] = useState({
-    name: '',
-    location: '',
-    date: '',
-    status: 'Active',
-    age: '',
-    description: '',
-  })
 
   const [reports, setReports] = useState([
     { id: 1, name: 'Amina Hassan', location: 'Nairobi, Kenya', date: '2024-06-29', status: 'Active', age: 28, description: 'Last seen wearing blue dress' },
@@ -22,24 +15,33 @@ const Reports = () => {
     { id: 5, name: 'John Mwangi', location: 'Nakuru, Kenya', date: '2024-06-25', status: 'Active', age: 34, description: 'Last seen at market' },
   ])
 
+  const [formData, setFormData] = useState({
+    name: '',
+    location: '',
+    date: '',
+    status: 'Active',
+    age: '',
+    description: ''
+  })
+
   const [nextId, setNextId] = useState(6)
 
   const getStatusColor = (status) => {
-    switch(status) {
-      case 'Active': return 'text-green-600 bg-green-50 dark:bg-green-900/20'
-      case 'Pending': return 'text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20'
-      case 'Resolved': return 'text-blue-600 bg-blue-50 dark:bg-blue-900/20'
-      default: return 'text-gray-600 bg-gray-50'
+    const colors = {
+      Active: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+      Pending: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+      Resolved: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
     }
+    return colors[status] || 'bg-gray-100 text-gray-700'
   }
 
-  const getStatusBadgeColor = (status) => {
-    switch(status) {
-      case 'Active': return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-      case 'Pending': return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
-      case 'Resolved': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-      default: return 'bg-gray-100 text-gray-700'
+  const getStatusDot = (status) => {
+    const colors = {
+      Active: 'bg-emerald-500',
+      Pending: 'bg-amber-500',
+      Resolved: 'bg-blue-500',
     }
+    return colors[status] || 'bg-gray-500'
   }
 
   const handleAddReport = () => {
@@ -56,39 +58,27 @@ const Reports = () => {
       date: report.date,
       status: report.status,
       age: report.age,
-      description: report.description || '',
+      description: report.description || ''
     })
     setShowModal(true)
   }
 
   const handleDeleteReport = (id) => {
     if (window.confirm('Are you sure you want to delete this report?')) {
-      setReports(reports.filter(report => report.id !== id))
+      setReports(reports.filter(r => r.id !== id))
     }
   }
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    
     if (editingReport) {
-      // Edit existing
-      setReports(reports.map(report => 
-        report.id === editingReport.id 
-          ? { ...report, ...formData }
-          : report
-      ))
+      setReports(reports.map(r => r.id === editingReport.id ? { ...r, ...formData } : r))
     } else {
-      // Add new
       setReports([...reports, { id: nextId, ...formData }])
       setNextId(nextId + 1)
     }
-    
     setShowModal(false)
     setFormData({ name: '', location: '', date: '', status: 'Active', age: '', description: '' })
-  }
-
-  const handleViewReport = (report) => {
-    alert(`📋 Report Details:\n\nName: ${report.name}\nLocation: ${report.location}\nDate: ${report.date}\nStatus: ${report.status}\nAge: ${report.age}\nDescription: ${report.description || 'N/A'}`)
   }
 
   const filteredReports = reports.filter(report => {
@@ -100,121 +90,115 @@ const Reports = () => {
 
   return (
     <div className="p-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Reports</h1>
           <p className="text-gray-500 dark:text-gray-400 text-sm">Manage missing person reports</p>
         </div>
         <button 
           onClick={handleAddReport}
-          className="bg-gradient-to-r from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600 text-white px-4 py-2 rounded-lg transition-all transform hover:scale-105 shadow-md flex items-center gap-2"
+          className="bg-gradient-to-r from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600 text-white px-5 py-2.5 rounded-xl font-medium transition-all duration-300 transform hover:scale-105 shadow-lg shadow-primary-500/25 flex items-center gap-2"
         >
-          ➕ New Report
+          <Plus size={18} />
+          New Report
         </button>
       </div>
 
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800">
+          <p className="text-xs text-gray-500 dark:text-gray-400">Total</p>
+          <p className="text-xl font-bold text-gray-900 dark:text-white">{reports.length}</p>
+        </div>
+        <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800">
+          <p className="text-xs text-gray-500 dark:text-gray-400">Active</p>
+          <p className="text-xl font-bold text-emerald-600">{reports.filter(r => r.status === 'Active').length}</p>
+        </div>
+        <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800">
+          <p className="text-xs text-gray-500 dark:text-gray-400">Pending</p>
+          <p className="text-xl font-bold text-amber-600">{reports.filter(r => r.status === 'Pending').length}</p>
+        </div>
+        <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800">
+          <p className="text-xs text-gray-500 dark:text-gray-400">Resolved</p>
+          <p className="text-xl font-bold text-blue-600">{reports.filter(r => r.status === 'Resolved').length}</p>
+        </div>
+      </div>
+
       {/* Search and Filter */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 mb-6 flex flex-col md:flex-row gap-3">
+      <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-4 mb-6 flex flex-col sm:flex-row gap-3">
         <div className="flex-1 relative">
+          <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
           <input
             type="text"
             placeholder="Search by name or location..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           />
         </div>
         <div className="flex gap-2 flex-wrap">
-          <button 
-            onClick={() => setFilterStatus('all')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              filterStatus === 'all' 
-                ? 'bg-primary-500 text-white' 
-                : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-            }`}
-          >
-            All
-          </button>
-          <button 
-            onClick={() => setFilterStatus('Active')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              filterStatus === 'Active' 
-                ? 'bg-green-500 text-white' 
-                : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-            }`}
-          >
-            Active
-          </button>
-          <button 
-            onClick={() => setFilterStatus('Pending')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              filterStatus === 'Pending' 
-                ? 'bg-yellow-500 text-white' 
-                : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-            }`}
-          >
-            Pending
-          </button>
-          <button 
-            onClick={() => setFilterStatus('Resolved')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              filterStatus === 'Resolved' 
-                ? 'bg-blue-500 text-white' 
-                : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-            }`}
-          >
-            Resolved
-          </button>
+          {['all', 'Active', 'Pending', 'Resolved'].map((status) => (
+            <button
+              key={status}
+              onClick={() => setFilterStatus(status)}
+              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+                filterStatus === status
+                  ? 'bg-gradient-to-r from-primary-500 to-secondary-500 text-white shadow-lg shadow-primary-500/25'
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+              }`}
+            >
+              {status.charAt(0).toUpperCase() + status.slice(1)}
+            </button>
+          ))}
         </div>
       </div>
 
       {/* Reports Table */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+      <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[800px]">
-            <thead className="bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700">
+          <table className="w-full">
+            <thead className="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-800">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">ID</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Name</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Location</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Date</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Status</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Age</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Actions</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">ID</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Name</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Location</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Age</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+            <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
               {filteredReports.map((report) => (
                 <tr key={report.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                  <td className="px-4 py-3 text-sm text-gray-900 dark:text-white">{report.id}</td>
+                  <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">{report.id}</td>
                   <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">{report.name}</td>
                   <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">{report.location}</td>
                   <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">{report.date}</td>
                   <td className="px-4 py-3">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBadgeColor(report.status)}`}>
+                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(report.status)}`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${getStatusDot(report.status)}`}></span>
                       {report.status}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">{report.age}</td>
                   <td className="px-4 py-3">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <button 
-                        onClick={() => handleViewReport(report)}
-                        className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs transition-colors"
-                      >
-                        View
+                    <div className="flex items-center gap-2">
+                      <button className="p-1.5 hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded-lg text-blue-600 dark:text-blue-400 transition-colors">
+                        <Eye size={16} />
                       </button>
                       <button 
                         onClick={() => handleEditReport(report)}
-                        className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-xs transition-colors"
+                        className="p-1.5 hover:bg-amber-50 dark:hover:bg-amber-950/30 rounded-lg text-amber-600 dark:text-amber-400 transition-colors"
                       >
-                        Edit
+                        <Edit size={16} />
                       </button>
                       <button 
                         onClick={() => handleDeleteReport(report.id)}
-                        className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs transition-colors"
+                        className="p-1.5 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg text-red-600 dark:text-red-400 transition-colors"
                       >
-                        Delete
+                        <Trash2 size={16} />
                       </button>
                     </div>
                   </td>
@@ -225,22 +209,23 @@ const Reports = () => {
         </div>
         
         {filteredReports.length === 0 && (
-          <div className="p-8 text-center text-gray-500">
-            <p className="text-4xl mb-2">📋</p>
-            <p>No reports found</p>
+          <div className="py-12 text-center">
+            <div className="text-4xl mb-3">📋</div>
+            <p className="text-gray-500 dark:text-gray-400 font-medium">No reports found</p>
+            <p className="text-sm text-gray-400 dark:text-gray-500">Try adjusting your search or filter</p>
           </div>
         )}
 
-        <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700 flex justify-between items-center text-sm text-gray-500">
+        <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-800 flex justify-between items-center text-sm text-gray-500 dark:text-gray-400">
           <span>Showing {filteredReports.length} of {reports.length} reports</span>
-          <span className="text-xs">{reports.length} total reports</span>
+          <span>{reports.length} total</span>
         </div>
       </div>
 
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
                 {editingReport ? 'Edit Report' : 'Add New Report'}
@@ -248,67 +233,57 @@ const Reports = () => {
               
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Full Name *
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Full Name *</label>
                   <input
                     type="text"
                     required
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     placeholder="Enter full name"
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Location *
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Location *</label>
                   <input
                     type="text"
                     required
                     value={formData.location}
                     onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     placeholder="Enter location"
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Date *
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date *</label>
                   <input
                     type="date"
                     required
                     value={formData.date}
                     onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Age
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Age</label>
                   <input
                     type="number"
                     value={formData.age}
                     onChange={(e) => setFormData({ ...formData, age: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     placeholder="Enter age"
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Status
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
                   <select
                     value={formData.status}
                     onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   >
                     <option value="Active">Active</option>
                     <option value="Pending">Pending</option>
@@ -317,14 +292,12 @@ const Reports = () => {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Description
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
                   <textarea
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     rows="3"
-                    className="w-full px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
                     placeholder="Enter description..."
                   />
                 </div>
@@ -332,14 +305,14 @@ const Reports = () => {
                 <div className="flex gap-3 pt-2">
                   <button
                     type="submit"
-                    className="flex-1 bg-gradient-to-r from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600 text-white font-semibold py-2 px-4 rounded-lg transition-all"
+                    className="flex-1 bg-gradient-to-r from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600 text-white font-semibold py-2.5 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg shadow-primary-500/25"
                   >
                     {editingReport ? 'Update Report' : 'Add Report'}
                   </button>
                   <button
                     type="button"
                     onClick={() => setShowModal(false)}
-                    className="px-6 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                    className="px-6 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                   >
                     Cancel
                   </button>
