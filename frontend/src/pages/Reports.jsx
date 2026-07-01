@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Plus, Search, Filter, Edit, Trash2, Eye, ChevronDown } from 'lucide-react'
+import { Plus, Search, Edit, Trash2, Eye } from 'lucide-react'
 
 const Reports = () => {
   const [searchTerm, setSearchTerm] = useState('')
@@ -8,11 +8,11 @@ const Reports = () => {
   const [editingReport, setEditingReport] = useState(null)
 
   const [reports, setReports] = useState([
-    { id: 1, name: 'Amina Hassan', location: 'Nairobi, Kenya', date: '2024-06-29', status: 'Active', age: 28, description: 'Last seen wearing blue dress' },
-    { id: 2, name: 'Fatumia Ali', location: 'Garissa, Kenya', date: '2024-06-28', status: 'Pending', age: 32, description: 'Missing from home' },
-    { id: 3, name: 'Peter Otieno', location: 'Kiambu, Kenya', date: '2024-06-27', status: 'Active', age: 45, description: 'Wearing red jacket' },
-    { id: 4, name: 'Sarah Wanjiru', location: 'Mombasa, Kenya', date: '2024-06-26', status: 'Resolved', age: 19, description: 'Found safe' },
-    { id: 5, name: 'John Mwangi', location: 'Nakuru, Kenya', date: '2024-06-25', status: 'Active', age: 34, description: 'Last seen at market' },
+    { id: 1, name: 'Amina Hassan', location: 'Wajir, Kenya', date: '2024-06-29', status: 'Active', age: 28, description: 'Last seen wearing blue dress near Wajir market' },
+    { id: 2, name: 'Fatumia Ali', location: 'Garissa, Kenya', date: '2024-06-28', status: 'Pending', age: 32, description: 'Missing from Garissa market area' },
+    { id: 3, name: 'Mohamed Ali', location: 'Mandera, Kenya', date: '2024-06-27', status: 'Active', age: 34, description: 'Last seen at Mandera bus station' },
+    { id: 4, name: 'Aisha Hassan', location: 'Wajir, Kenya', date: '2024-06-26', status: 'Resolved', age: 22, description: 'Found safe in Wajir town' },
+    { id: 5, name: 'Ibrahim Ahmed', location: 'Garissa, Kenya', date: '2024-06-25', status: 'Active', age: 45, description: 'Last seen near Garissa market' },
   ])
 
   const [formData, setFormData] = useState({
@@ -28,8 +28,8 @@ const Reports = () => {
 
   const getStatusColor = (status) => {
     const colors = {
-      Active: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
-      Pending: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+      Active: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+      Pending: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
       Resolved: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
     }
     return colors[status] || 'bg-gray-100 text-gray-700'
@@ -37,8 +37,8 @@ const Reports = () => {
 
   const getStatusDot = (status) => {
     const colors = {
-      Active: 'bg-emerald-500',
-      Pending: 'bg-amber-500',
+      Active: 'bg-green-500',
+      Pending: 'bg-yellow-500',
       Resolved: 'bg-blue-500',
     }
     return colors[status] || 'bg-gray-500'
@@ -88,9 +88,15 @@ const Reports = () => {
     return matchesSearch && matchesFilter
   })
 
+  const stats = {
+    total: reports.length,
+    active: reports.filter(r => r.status === 'Active').length,
+    pending: reports.filter(r => r.status === 'Pending').length,
+    resolved: reports.filter(r => r.status === 'Resolved').length,
+  }
+
   return (
     <div className="p-6">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Reports</h1>
@@ -98,35 +104,35 @@ const Reports = () => {
         </div>
         <button 
           onClick={handleAddReport}
-          className="bg-gradient-to-r from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600 text-white px-5 py-2.5 rounded-xl font-medium transition-all duration-300 transform hover:scale-105 shadow-lg shadow-primary-500/25 flex items-center gap-2"
+          className="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl font-medium transition-all shadow-lg shadow-green-600/20 flex items-center gap-2"
         >
           <Plus size={18} />
           New Report
         </button>
       </div>
 
-      {/* Stats */}
+      {/* Stats - Green & White */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
           <p className="text-xs text-gray-500 dark:text-gray-400">Total</p>
-          <p className="text-xl font-bold text-gray-900 dark:text-white">{reports.length}</p>
+          <p className="text-xl font-bold text-gray-900 dark:text-white">{stats.total}</p>
         </div>
-        <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
           <p className="text-xs text-gray-500 dark:text-gray-400">Active</p>
-          <p className="text-xl font-bold text-emerald-600">{reports.filter(r => r.status === 'Active').length}</p>
+          <p className="text-xl font-bold text-green-600">{stats.active}</p>
         </div>
-        <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
           <p className="text-xs text-gray-500 dark:text-gray-400">Pending</p>
-          <p className="text-xl font-bold text-amber-600">{reports.filter(r => r.status === 'Pending').length}</p>
+          <p className="text-xl font-bold text-yellow-600">{stats.pending}</p>
         </div>
-        <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
           <p className="text-xs text-gray-500 dark:text-gray-400">Resolved</p>
-          <p className="text-xl font-bold text-blue-600">{reports.filter(r => r.status === 'Resolved').length}</p>
+          <p className="text-xl font-bold text-blue-600">{stats.resolved}</p>
         </div>
       </div>
 
       {/* Search and Filter */}
-      <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-4 mb-6 flex flex-col sm:flex-row gap-3">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-6 flex flex-col sm:flex-row gap-3">
         <div className="flex-1 relative">
           <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
           <input
@@ -134,7 +140,7 @@ const Reports = () => {
             placeholder="Search by name or location..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500"
           />
         </div>
         <div className="flex gap-2 flex-wrap">
@@ -142,10 +148,10 @@ const Reports = () => {
             <button
               key={status}
               onClick={() => setFilterStatus(status)}
-              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                 filterStatus === status
-                  ? 'bg-gradient-to-r from-primary-500 to-secondary-500 text-white shadow-lg shadow-primary-500/25'
-                  : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                  ? 'bg-green-600 text-white'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
               }`}
             >
               {status.charAt(0).toUpperCase() + status.slice(1)}
@@ -154,11 +160,11 @@ const Reports = () => {
         </div>
       </div>
 
-      {/* Reports Table */}
-      <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden">
+      {/* Reports Table - Green & White */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-800">
+            <thead className="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700">
               <tr>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">ID</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Name</th>
@@ -169,9 +175,9 @@ const Reports = () => {
                 <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+            <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
               {filteredReports.map((report) => (
-                <tr key={report.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                <tr key={report.id} className="hover:bg-green-50 dark:hover:bg-green-950/10 transition-colors">
                   <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">{report.id}</td>
                   <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">{report.name}</td>
                   <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">{report.location}</td>
@@ -185,12 +191,12 @@ const Reports = () => {
                   <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">{report.age}</td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
-                      <button className="p-1.5 hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded-lg text-blue-600 dark:text-blue-400 transition-colors">
+                      <button className="p-1.5 hover:bg-green-50 dark:hover:bg-green-950/30 rounded-lg text-green-600 dark:text-green-400 transition-colors">
                         <Eye size={16} />
                       </button>
                       <button 
                         onClick={() => handleEditReport(report)}
-                        className="p-1.5 hover:bg-amber-50 dark:hover:bg-amber-950/30 rounded-lg text-amber-600 dark:text-amber-400 transition-colors"
+                        className="p-1.5 hover:bg-green-50 dark:hover:bg-green-950/30 rounded-lg text-green-600 dark:text-green-400 transition-colors"
                       >
                         <Edit size={16} />
                       </button>
@@ -216,16 +222,16 @@ const Reports = () => {
           </div>
         )}
 
-        <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-800 flex justify-between items-center text-sm text-gray-500 dark:text-gray-400">
+        <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700 flex justify-between items-center text-sm text-gray-500 dark:text-gray-400">
           <span>Showing {filteredReports.length} of {reports.length} reports</span>
-          <span>{reports.length} total</span>
+          <span className="text-green-600 font-medium">{reports.length} total</span>
         </div>
       </div>
 
-      {/* Modal */}
+      {/* Modal - Green & White */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
                 {editingReport ? 'Edit Report' : 'Add New Report'}
@@ -239,21 +245,27 @@ const Reports = () => {
                     required
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500"
                     placeholder="Enter full name"
                   />
                 </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Location *</label>
-                  <input
-                    type="text"
+                  <select
                     required
                     value={formData.location}
                     onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    placeholder="Enter location"
-                  />
+                    className="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                  >
+                    <option value="">Select Location</option>
+                    <option value="Wajir, Kenya">Wajir, Kenya</option>
+                    <option value="Mandera, Kenya">Mandera, Kenya</option>
+                    <option value="Garissa, Kenya">Garissa, Kenya</option>
+                    <option value="Nairobi, Kenya">Nairobi, Kenya</option>
+                    <option value="Mombasa, Kenya">Mombasa, Kenya</option>
+                    <option value="Kisumu, Kenya">Kisumu, Kenya</option>
+                  </select>
                 </div>
                 
                 <div>
@@ -263,7 +275,7 @@ const Reports = () => {
                     required
                     value={formData.date}
                     onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500"
                   />
                 </div>
                 
@@ -273,7 +285,7 @@ const Reports = () => {
                     type="number"
                     value={formData.age}
                     onChange={(e) => setFormData({ ...formData, age: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500"
                     placeholder="Enter age"
                   />
                 </div>
@@ -283,7 +295,7 @@ const Reports = () => {
                   <select
                     value={formData.status}
                     onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500"
                   >
                     <option value="Active">Active</option>
                     <option value="Pending">Pending</option>
@@ -297,7 +309,7 @@ const Reports = () => {
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     rows="3"
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+                    className="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"
                     placeholder="Enter description..."
                   />
                 </div>
@@ -305,14 +317,14 @@ const Reports = () => {
                 <div className="flex gap-3 pt-2">
                   <button
                     type="submit"
-                    className="flex-1 bg-gradient-to-r from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600 text-white font-semibold py-2.5 rounded-xl transition-all duration-300 transform hover:scale-[1.02] shadow-lg shadow-primary-500/25"
+                    className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 rounded-lg transition-all shadow-lg shadow-green-600/20"
                   >
                     {editingReport ? 'Update Report' : 'Add Report'}
                   </button>
                   <button
                     type="button"
                     onClick={() => setShowModal(false)}
-                    className="px-6 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                    className="px-6 py-2.5 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                   >
                     Cancel
                   </button>
