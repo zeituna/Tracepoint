@@ -1,109 +1,87 @@
-import React from 'react'
-import { NavLink } from 'react-router-dom'
-import { 
-  LayoutDashboard, 
-  FileText, 
-  MapPin, 
-  Camera, 
-  MessageSquare, 
-  Bell, 
-  BarChart3, 
-  Users, 
-  Building2, 
-  FolderKanban, 
-  PieChart, 
-  Settings,
-} from 'lucide-react'
+import React, { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 
-const Sidebar = ({ isOpen }) => {
-  const navItems = [
-    { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-    { path: '/reports', icon: FileText, label: 'Reports' },
-    { path: '/map-tracking', icon: MapPin, label: 'Map & Tracking' },
-    { path: '/facial-recognition', icon: Camera, label: 'Facial Recognition' },
-    { path: '/messages', icon: MessageSquare, label: 'Messages' },
-    { path: '/alerts', icon: Bell, label: 'Alerts' },
-    { path: '/statistics', icon: BarChart3, label: 'Statistics' },
-  ]
+const Sidebar = () => {
+  const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
 
-  const managementItems = [
-    { path: '/users', icon: Users, label: 'Users' },
-    { path: '/organizations', icon: Building2, label: 'Organizations' },
-    { path: '/case-management', icon: FolderKanban, label: 'Case Management' },
-    { path: '/reports-analytics', icon: PieChart, label: 'Reports & Analytics' },
-  ]
+  const menuItems = [
+    { icon: '📊', label: 'Dashboard', path: '/dashboard' },
+    { icon: '📄', label: 'Reports', path: '/reports' },
+    { icon: '📍', label: 'Map Tracking', path: '/map-tracking' },
+    { icon: '📷', label: 'Facial Recognition', path: '/facial-recognition' },
+    { icon: '💬', label: 'Messages', path: '/messages' },
+    { icon: '🔔', label: 'Alerts', path: '/alerts' },
+    { icon: '📈', label: 'Statistics', path: '/statistics' },
+    { icon: '👥', label: 'Users', path: '/users' },
+    { icon: '🏢', label: 'Organizations', path: '/organizations' },
+    { icon: '📁', label: 'Case Management', path: '/case-management' },
+    { icon: '⚙️', label: 'Settings', path: '/settings' },
+  ];
+
+  const handleLogout = () => {
+    navigate('/login');
+  };
+
+  const NavItem = ({ icon, label, path }) => {
+    const isActive = location.pathname === path;
+    return (
+      <a
+        href={path}
+        className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 ${
+          isActive 
+            ? 'bg-emerald-50 text-emerald-700 font-medium shadow-sm' 
+            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+        } ${collapsed ? 'justify-center' : ''}`}
+      >
+        <span className="text-lg flex-shrink-0">{icon}</span>
+        {!collapsed && <span className="text-sm font-medium">{label}</span>}
+      </a>
+    );
+  };
 
   return (
-    <aside className={`fixed left-0 top-0 h-full w-64 bg-gray-900 dark:bg-gray-950 text-white transition-transform duration-300 z-20 ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
-      {/* Brand - Emerald + Gold Gradient */}
-      <div className="flex items-center gap-2 px-4 h-16 border-b border-gray-800 bg-gradient-to-r from-primary-600 to-secondary-600">
-        <div className="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center font-bold text-sm">
-          TP
-        </div>
-        <span className="text-xl font-bold tracking-tight">TracePoint</span>
-      </div>
+    <>
+      <button
+        onClick={() => setMobileOpen(!mobileOpen)}
+        className="lg:hidden fixed top-20 left-4 z-50 p-2 bg-white rounded-lg shadow-lg"
+      >
+        {mobileOpen ? '✕' : '☰'}
+      </button>
 
-      {/* Navigation */}
-      <nav className="p-3 overflow-y-auto h-[calc(100vh-4rem)]">
-        <div className="space-y-1">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              className={({ isActive }) => `
-                flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all
-                ${isActive 
-                  ? 'bg-gradient-to-r from-primary-500 to-secondary-500 text-white shadow-lg shadow-primary-500/30' 
-                  : 'text-gray-400 hover:text-white hover:bg-gray-800'
-                }
-              `}
-            >
-              <item.icon size={20} />
-              <span>{item.label}</span>
-            </NavLink>
+      {mobileOpen && (
+        <div 
+          className="lg:hidden fixed inset-0 bg-black/40 z-40"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      <aside className={`fixed top-14 left-0 h-[calc(100vh-3.5rem)] bg-white border-r border-gray-200 z-40 flex flex-col transition-all duration-300 ${
+        collapsed ? 'w-20' : 'w-64'
+      } ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+        {/* No logo here - removed to avoid duplication */}
+        <div className="h-4 flex-shrink-0"></div>
+
+        <div className="flex-1 overflow-y-auto px-3 py-2 space-y-1">
+          {menuItems.map((item) => (
+            <NavItem key={item.label} {...item} />
           ))}
         </div>
 
-        <div className="mt-6 pt-4 border-t border-gray-800">
-          <p className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Management</p>
-          <div className="mt-2 space-y-1">
-            {managementItems.map((item) => (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                className={({ isActive }) => `
-                  flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all pl-9
-                  ${isActive 
-                    ? 'bg-gradient-to-r from-primary-500 to-secondary-500 text-white shadow-lg shadow-primary-500/30' 
-                    : 'text-gray-400 hover:text-white hover:bg-gray-800'
-                  }
-                `}
-              >
-                <item.icon size={18} />
-                <span>{item.label}</span>
-              </NavLink>
-            ))}
-          </div>
-        </div>
-
-        <div className="mt-6 pt-4 border-t border-gray-800">
-          <NavLink
-            to="/settings"
-            className={({ isActive }) => `
-              flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all
-              ${isActive 
-                ? 'bg-gradient-to-r from-primary-500 to-secondary-500 text-white shadow-lg shadow-primary-500/30' 
-                : 'text-gray-400 hover:text-white hover:bg-gray-800'
-              }
-            `}
+        <div className="border-t border-gray-100 px-4 py-4 bg-gray-50/50 flex-shrink-0">
+          <button
+            onClick={handleLogout}
+            className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-gray-600 hover:bg-red-50 hover:text-red-600 transition-colors ${collapsed ? 'justify-center' : ''}`}
           >
-            <Settings size={20} />
-            <span>Settings</span>
-          </NavLink>
+            <span className="text-lg">🚪</span>
+            {!collapsed && <span className="text-sm font-medium">Logout</span>}
+          </button>
         </div>
-      </nav>
-    </aside>
-  )
-}
+      </aside>
+    </>
+  );
+};
 
-export default Sidebar
+export default Sidebar;
