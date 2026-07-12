@@ -1,396 +1,273 @@
-import React, { useState } from 'react'
-import { 
-  Bell, 
-  CheckCircle, 
-  AlertTriangle, 
-  Info, 
-  XCircle, 
-  Clock, 
-  Search,
-  Eye,
-  Check,
-  Trash2,
-  X,
-  Shield,
-  AlertOctagon,
-  MessageSquare,
-  Users,
-  FileCheck,
-  Clock as ClockIcon
-} from 'lucide-react'
+import React, { useState, useEffect } from 'react';
+import { Bell, AlertTriangle, CheckCircle, XCircle, Clock, Trash2, Check, RefreshCw, Shield, Info } from 'lucide-react';
 
 const Alerts = () => {
-  const [filterType, setFilterType] = useState('all')
-  const [searchTerm, setSearchTerm] = useState('')
-  const [selectedAlert, setSelectedAlert] = useState(null)
-  const [showModal, setShowModal] = useState(false)
-
   const [alerts, setAlerts] = useState([
-    { 
-      id: 1, 
-      type: 'success', 
-      title: 'Report Resolved', 
-      message: 'Missing person report 123 has been resolved successfully. The person has been found safe.',
-      time: '2 hours ago', 
+    {
+      id: 1,
+      type: 'urgent',
+      title: '🚨 Missing Person Report: Amina Hassan',
+      description: 'Amina Hassan, 28, last seen in Wajir. Immediate attention needed.',
+      time: '2 min ago',
       read: false,
-      priority: 'High',
-      icon: <FileCheck size={20} />
-    },
-    { 
-      id: 2, 
-      type: 'warning', 
-      title: 'New Report Submitted', 
-      message: 'A new missing person report has been submitted for Amina Hassan. Please review the case.',
-      time: '4 hours ago', 
-      read: false,
-      priority: 'Medium',
-      icon: <MessageSquare size={20} />
-    },
-    { 
-      id: 3, 
-      type: 'info', 
-      title: 'Case Updated', 
-      message: 'Case 456 has been updated with new information. A witness has come forward.',
-      time: '6 hours ago', 
-      read: true,
-      priority: 'Low',
-      icon: <Info size={20} />
-    },
-    { 
-      id: 4, 
-      type: 'error', 
-      title: 'Urgent Alert', 
-      message: 'Suspicious activity detected in Nairobi area. Multiple reports of missing persons in the same region.',
-      time: '1 day ago', 
-      read: true,
-      priority: 'High',
-      icon: <AlertOctagon size={20} />
-    },
-    { 
-      id: 5, 
-      type: 'success', 
-      title: 'Case Closed', 
-      message: 'Missing person case 789 has been successfully closed. The individual has been reunited with family.',
-      time: '2 days ago', 
-      read: true,
-      priority: 'Medium',
-      icon: <Shield size={20} />
+      priority: 'high'
     },
     {
-      id: 6,
+      id: 2,
       type: 'warning',
-      title: 'Pending Review',
-      message: 'Report 234 requires your review. Additional information has been submitted.',
+      title: '⚠️ Case Update: Sarah Ochieng',
+      description: 'New information received in Kisumu case. Review required.',
+      time: '15 min ago',
+      read: false,
+      priority: 'medium'
+    },
+    {
+      id: 3,
+      type: 'success',
+      title: '✅ Case Resolved: John Kimani',
+      description: 'John Kimani has been found safe in Mombasa.',
+      time: '1 hour ago',
+      read: true,
+      priority: 'low'
+    },
+    {
+      id: 4,
+      type: 'info',
+      title: '📋 New Report Submitted',
+      description: 'Community Watch submitted a new report from Nakuru.',
+      time: '2 hours ago',
+      read: true,
+      priority: 'low'
+    },
+    {
+      id: 5,
+      type: 'urgent',
+      title: '🚨 Critical Alert: Mandera Border',
+      description: 'Cross-border incident reported. Security team notified.',
       time: '3 hours ago',
       read: false,
-      priority: 'High',
-      icon: <ClockIcon size={20} />
+      priority: 'high'
     }
-  ])
+  ]);
 
-  const getTypeStyles = (type) => {
-    const styles = {
-      success: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border-green-200 dark:border-green-800',
-      warning: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800',
-      error: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-red-200 dark:border-red-800',
-      info: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800',
-    }
-    return styles[type] || styles.info
-  }
+  const [filter, setFilter] = useState('all');
+  const [selectedAlert, setSelectedAlert] = useState(null);
 
-  const getTypeIcon = (type) => {
-    const icons = {
-      success: <CheckCircle size={20} />,
-      warning: <AlertTriangle size={20} />,
-      error: <XCircle size={20} />,
-      info: <Info size={20} />,
+  const getAlertIcon = (type) => {
+    switch(type) {
+      case 'urgent': return <AlertTriangle className="text-red-500" size={20} />;
+      case 'warning': return <Bell className="text-yellow-500" size={20} />;
+      case 'success': return <CheckCircle className="text-green-500" size={20} />;
+      case 'info': return <Info className="text-blue-500" size={20} />;
+      default: return <Bell className="text-gray-500" size={20} />;
     }
-    return icons[type] || icons.info
-  }
+  };
 
-  const getPriorityColor = (priority) => {
-    const colors = {
-      'High': 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-red-200',
-      'Medium': 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 border-yellow-200',
-      'Low': 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border-green-200',
+  const getAlertStyles = (type) => {
+    switch(type) {
+      case 'urgent': return 'bg-red-50 border-red-200 hover:bg-red-100';
+      case 'warning': return 'bg-yellow-50 border-yellow-200 hover:bg-yellow-100';
+      case 'success': return 'bg-green-50 border-green-200 hover:bg-green-100';
+      case 'info': return 'bg-blue-50 border-blue-200 hover:bg-blue-100';
+      default: return 'bg-gray-50 border-gray-200 hover:bg-gray-100';
     }
-    return colors[priority] || colors.Low
-  }
+  };
 
-  const getPriorityIcon = (priority) => {
-    const icons = {
-      'High': <AlertOctagon size={14} />,
-      'Medium': <AlertTriangle size={14} />,
-      'Low': <Info size={14} />,
+  const getPriorityBadge = (priority) => {
+    switch(priority) {
+      case 'high': return 'bg-red-500 text-white';
+      case 'medium': return 'bg-yellow-500 text-white';
+      case 'low': return 'bg-green-500 text-white';
+      default: return 'bg-gray-500 text-white';
     }
-    return icons[priority] || icons.Low
-  }
+  };
 
   const handleMarkRead = (id) => {
     setAlerts(alerts.map(alert => 
       alert.id === id ? { ...alert, read: true } : alert
-    ))
-  }
-
-  const handleMarkAllRead = () => {
-    setAlerts(alerts.map(alert => ({ ...alert, read: true })))
-  }
+    ));
+  };
 
   const handleDelete = (id) => {
-    setAlerts(alerts.filter(alert => alert.id !== id))
-  }
+    if (window.confirm('⚠️ Are you sure you want to delete this alert?')) {
+      setAlerts(alerts.filter(alert => alert.id !== id));
+    }
+  };
 
-  const handleViewDetails = (alert) => {
-    setSelectedAlert(alert)
-    setShowModal(true)
-    handleMarkRead(alert.id)
-  }
+  const handleMarkAllRead = () => {
+    setAlerts(alerts.map(alert => ({ ...alert, read: true })));
+  };
 
-  const filteredAlerts = alerts.filter(alert => {
-    const matchesSearch = alert.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          alert.message.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesFilter = filterType === 'all' || alert.type === filterType
-    return matchesSearch && matchesFilter
-  })
+  const handleDeleteAll = () => {
+    if (window.confirm('⚠️ Are you sure you want to delete all alerts?')) {
+      setAlerts([]);
+    }
+  };
 
-  const unreadCount = alerts.filter(a => !a.read).length
+  const filteredAlerts = filter === 'all' 
+    ? alerts 
+    : alerts.filter(alert => alert.type === filter);
+
+  const unreadCount = alerts.filter(a => !a.read).length;
 
   return (
-    <div className="p-6">
+    <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Alerts</h1>
-          <p className="text-gray-500 dark:text-gray-400 text-sm flex items-center gap-2">
-            <Bell size={14} className="text-green-600" />
-            {unreadCount} unread notifications
+          <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+            <Bell className="text-emerald-500" size={28} />
+            Alerts & Notifications
+          </h1>
+          <p className="text-gray-500 mt-1">
+            {unreadCount > 0 ? (
+              <span className="text-red-500 font-medium">{unreadCount} unread alerts</span>
+            ) : (
+              'All caught up! No unread alerts'
+            )}
           </p>
         </div>
         <div className="flex gap-2">
           {unreadCount > 0 && (
-            <button 
+            <button
               onClick={handleMarkAllRead}
-              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 rounded-xl font-medium transition-all shadow-lg shadow-green-600/20 flex items-center gap-2"
+              className="px-4 py-2 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition flex items-center gap-2 text-sm"
             >
-              <Check size={18} />
+              <Check size={16} />
               Mark All Read
             </button>
           )}
-        </div>
-      </div>
-
-      {/* Stats - Green & White */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center gap-2">
-            <Bell size={16} className="text-gray-400" />
-            <p className="text-xs text-gray-500 dark:text-gray-400">Total</p>
-          </div>
-          <p className="text-xl font-bold text-gray-900 dark:text-white mt-1">{alerts.length}</p>
-        </div>
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center gap-2">
-            <ClockIcon size={16} className="text-green-600" />
-            <p className="text-xs text-gray-500 dark:text-gray-400">Unread</p>
-          </div>
-          <p className="text-xl font-bold text-green-600">{unreadCount}</p>
-        </div>
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center gap-2">
-            <AlertOctagon size={16} className="text-red-500" />
-            <p className="text-xs text-gray-500 dark:text-gray-400">Urgent</p>
-          </div>
-          <p className="text-xl font-bold text-red-600">
-            {alerts.filter(a => a.priority === 'High').length}
-          </p>
-        </div>
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center gap-2">
-            <FileCheck size={16} className="text-green-600" />
-            <p className="text-xs text-gray-500 dark:text-gray-400">Resolved</p>
-          </div>
-          <p className="text-xl font-bold text-green-600">
-            {alerts.filter(a => a.type === 'success').length}
-          </p>
-        </div>
-      </div>
-
-      {/* Search & Filter */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-6 flex flex-col sm:flex-row gap-3">
-        <div className="flex-1 relative">
-          <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search alerts..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500"
-          />
-        </div>
-        <div className="flex gap-2 flex-wrap">
-          {['all', 'info', 'success', 'warning', 'error'].map((type) => (
+          {alerts.length > 0 && (
             <button
-              key={type}
-              onClick={() => setFilterType(type)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                filterType === type
-                  ? 'bg-green-600 text-white'
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
-              }`}
+              onClick={handleDeleteAll}
+              className="px-4 py-2 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition flex items-center gap-2 text-sm"
             >
-              {type.charAt(0).toUpperCase() + type.slice(1)}
+              <Trash2 size={16} />
+              Delete All
             </button>
-          ))}
+          )}
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 transition flex items-center gap-2 text-sm"
+          >
+            <RefreshCw size={16} />
+            Refresh
+          </button>
         </div>
       </div>
 
-      {/* Alerts List - Green & White with Icons */}
-      <div className="space-y-3">
-        {filteredAlerts.map((alert) => (
-          <div
-            key={alert.id}
-            className={`bg-white dark:bg-gray-800 rounded-xl border p-4 transition-all hover:shadow-md ${
-              !alert.read ? 'border-l-4 border-l-green-600 border-gray-200 dark:border-gray-700' : 'border-gray-200 dark:border-gray-700'
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-white rounded-xl shadow p-4 border border-gray-100">
+          <p className="text-sm text-gray-500">Total</p>
+          <p className="text-2xl font-bold text-gray-800">{alerts.length}</p>
+        </div>
+        <div className="bg-white rounded-xl shadow p-4 border border-red-100">
+          <p className="text-sm text-gray-500">Urgent</p>
+          <p className="text-2xl font-bold text-red-600">{alerts.filter(a => a.type === 'urgent').length}</p>
+        </div>
+        <div className="bg-white rounded-xl shadow p-4 border border-yellow-100">
+          <p className="text-sm text-gray-500">Unread</p>
+          <p className="text-2xl font-bold text-yellow-600">{unreadCount}</p>
+        </div>
+        <div className="bg-white rounded-xl shadow p-4 border border-green-100">
+          <p className="text-sm text-gray-500">Resolved</p>
+          <p className="text-2xl font-bold text-green-600">{alerts.filter(a => a.read).length}</p>
+        </div>
+      </div>
+
+      {/* Filter */}
+      <div className="flex gap-2 flex-wrap">
+        {['all', 'urgent', 'warning', 'success', 'info'].map((type) => (
+          <button
+            key={type}
+            onClick={() => setFilter(type)}
+            className={`px-4 py-2 rounded-xl text-sm font-medium transition ${
+              filter === type
+                ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
           >
-            <div className="flex items-start gap-4">
-              <div className={`p-2 rounded-lg ${getTypeStyles(alert.type)}`}>
-                {getTypeIcon(alert.type)}
-              </div>
-              <div className="flex-1">
-                <div className="flex flex-wrap justify-between items-start gap-2">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      {alert.icon && <span className="text-green-600">{alert.icon}</span>}
-                      <h3 className="font-semibold text-gray-900 dark:text-white">{alert.title}</h3>
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full flex items-center gap-1 ${getPriorityColor(alert.priority)}`}>
-                        {getPriorityIcon(alert.priority)}
-                        {alert.priority}
-                      </span>
-                      {!alert.read && (
-                        <span className="text-[10px] px-2 py-0.5 bg-green-100 text-green-700 rounded-full flex items-center gap-1">
-                          <Bell size={10} />
-                          New
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{alert.message}</p>
-                  </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
-                      <Clock size={12} />
-                      {alert.time}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex flex-wrap gap-2 mt-3">
-                  <button 
-                    onClick={() => handleViewDetails(alert)}
-                    className="text-xs px-3 py-1 bg-green-50 dark:bg-green-950/20 text-green-600 dark:text-green-400 rounded-lg hover:bg-green-100 dark:hover:bg-green-950/30 transition-colors flex items-center gap-1"
-                  >
-                    <Eye size={12} />
-                    View Details
-                  </button>
-                  {!alert.read && (
-                    <button 
-                      onClick={() => handleMarkRead(alert.id)}
-                      className="text-xs px-3 py-1 bg-green-50 dark:bg-green-950/20 text-green-600 dark:text-green-400 rounded-lg hover:bg-green-100 dark:hover:bg-green-950/30 transition-colors flex items-center gap-1"
-                    >
-                      <Check size={12} />
-                      Mark Read
-                    </button>
-                  )}
-                  <button 
-                    onClick={() => handleDelete(alert.id)}
-                    className="text-xs px-3 py-1 bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-950/50 transition-colors flex items-center gap-1"
-                  >
-                    <Trash2 size={12} />
-                    Delete
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+            {type.charAt(0).toUpperCase() + type.slice(1)}
+          </button>
         ))}
       </div>
 
-      {filteredAlerts.length === 0 && (
-        <div className="text-center py-12 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700">
-          <div className="text-5xl mb-4">🔔</div>
-          <p className="text-gray-500 dark:text-gray-400 font-medium">No alerts found</p>
-          <p className="text-sm text-gray-400 dark:text-gray-500">Try adjusting your search or filter</p>
-        </div>
-      )}
-
-      {/* Modal - Green & White */}
-      {showModal && selectedAlert && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-start mb-4">
-                <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-lg ${getTypeStyles(selectedAlert.type)}`}>
-                    {getTypeIcon(selectedAlert.type)}
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">{selectedAlert.title}</h2>
-                    <span className={`text-xs px-2 py-0.5 rounded-full flex items-center gap-1 ${getPriorityColor(selectedAlert.priority)}`}>
-                      {getPriorityIcon(selectedAlert.priority)}
-                      {selectedAlert.priority} Priority
-                    </span>
+      {/* Alerts List */}
+      <div className="space-y-3">
+        {filteredAlerts.length === 0 ? (
+          <div className="bg-white rounded-2xl shadow-xl p-12 text-center">
+            <Bell className="mx-auto h-16 w-16 text-gray-300 mb-4" />
+            <h3 className="text-lg font-semibold text-gray-700">No alerts</h3>
+            <p className="text-gray-400">You're all caught up!</p>
+          </div>
+        ) : (
+          filteredAlerts.map((alert) => (
+            <div
+              key={alert.id}
+              className={`p-4 rounded-xl border transition-all duration-300 hover:shadow-md ${getAlertStyles(alert.type)} ${
+                !alert.read ? 'border-l-4 border-l-red-500' : 'opacity-75'
+              }`}
+            >
+              <div className="flex items-start gap-3">
+                <div className="mt-1">
+                  {getAlertIcon(alert.type)}
+                </div>
+                <div className="flex-1">
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <div>
+                      <h3 className={`font-semibold ${!alert.read ? 'text-gray-800' : 'text-gray-600'}`}>
+                        {alert.title}
+                      </h3>
+                      <p className="text-sm text-gray-600 mt-1">{alert.description}</p>
+                      <div className="flex items-center gap-3 mt-2">
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getPriorityBadge(alert.priority)}`}>
+                          {alert.priority.toUpperCase()}
+                        </span>
+                        <span className="text-xs text-gray-400 flex items-center gap-1">
+                          <Clock size={12} />
+                          {alert.time}
+                        </span>
+                        {!alert.read && (
+                          <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full animate-pulse">
+                            NEW
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      {!alert.read && (
+                        <button
+                          onClick={() => handleMarkRead(alert.id)}
+                          className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition"
+                          title="Mark as read"
+                        >
+                          <Check size={18} />
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleDelete(alert.id)}
+                        className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition"
+                        title="Delete"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
                   </div>
                 </div>
-                <button 
-                  onClick={() => setShowModal(false)}
-                  className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-                >
-                  <X size={20} className="text-gray-500" />
-                </button>
-              </div>
-              
-              <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4 mb-4 flex items-start gap-3">
-                {selectedAlert.icon && <span className="text-green-600 mt-0.5">{selectedAlert.icon}</span>}
-                <p className="text-gray-700 dark:text-gray-300">{selectedAlert.message}</p>
-              </div>
-
-              <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400 mb-4">
-                <span className="flex items-center gap-1">
-                  <Clock size={14} />
-                  {selectedAlert.time}
-                </span>
-                <span className={`text-xs px-2 py-0.5 rounded-full ${getTypeStyles(selectedAlert.type)}`}>
-                  {selectedAlert.type.charAt(0).toUpperCase() + selectedAlert.type.slice(1)}
-                </span>
-                <span className="text-xs flex items-center gap-1">
-                  <Bell size={12} />
-                  {selectedAlert.read ? 'Read' : 'Unread'}
-                </span>
-              </div>
-
-              <div className="flex gap-2">
-                <button 
-                  onClick={() => setShowModal(false)}
-                  className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors shadow-lg shadow-green-600/20"
-                >
-                  Close
-                </button>
-                <button 
-                  onClick={() => {
-                    handleDelete(selectedAlert.id)
-                    setShowModal(false)
-                  }}
-                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
-                >
-                  <Trash2 size={16} className="inline mr-1" />
-                  Delete
-                </button>
               </div>
             </div>
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
+          ))
+        )}
+      </div>
 
-export default Alerts
+      {/* Footer */}
+      <div className="text-center text-sm text-gray-400 border-t border-gray-200 pt-4">
+        <p>Showing {filteredAlerts.length} of {alerts.length} alerts</p>
+        <p className="text-xs text-emerald-500 mt-1">🔔 Real-time notifications system</p>
+      </div>
+    </div>
+  );
+};
+
+export default Alerts;

@@ -1,301 +1,314 @@
-import React, { useState, useEffect, useRef } from 'react'
-import { Search, Send, Phone, Video, MoreVertical, Paperclip, Smile } from 'lucide-react'
-import { detectLanguage, getLanguageInfo, getSupportedLanguages } from '../utils/translationService'
+import React, { useState, useEffect } from 'react';
+import { Send, Trash2, CheckCircle, Clock, Users, Bell, X } from 'lucide-react';
 
 const Messages = () => {
-  const [selectedChat, setSelectedChat] = useState(null)
-  const [message, setMessage] = useState('')
-  const [searchTerm, setSearchTerm] = useState('')
-  const [showTranslation, setShowTranslation] = useState(false)
-  const messagesEndRef = useRef(null)
+  const [messages, setMessages] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [newMessage, setNewMessage] = useState({ recipient_id: '', content: '' });
+  const [notification, setNotification] = useState(null);
+  const [unreadCount, setUnreadCount] = useState(0);
 
-  const conversations = [
-    {
-      id: 1,
-      name: 'Amina Hassan',
-      lastMessage: 'Habari gani? Nimepata maelezo mapya.',
-      time: '2 min ago',
-      unread: true,
-      online: true,
-      language: 'sw',
-      messages: [
-        { id: 1, sender: 'them', text: 'Habari gani? Nimepata maelezo mapya kuhusu kesi.', time: '10:30 AM' },
-        { id: 2, sender: 'me', text: 'Tafadhali tuma maelezo.', time: '10:32 AM' },
-        { id: 3, sender: 'them', text: 'Nimeona mtu aliyepotea pale Nairobi.', time: '10:33 AM' },
-      ]
-    },
-    {
-      id: 2,
-      name: 'Peter Otieno',
-      lastMessage: 'We have located the missing person.',
-      time: '1 hour ago',
-      unread: false,
-      online: true,
-      language: 'en',
-      messages: [
-        { id: 1, sender: 'them', text: 'We have located the missing person in Kisumu.', time: '9:15 AM' },
-        { id: 2, sender: 'me', text: 'Please share location details.', time: '9:20 AM' },
-      ]
-    },
-    {
-      id: 3,
-      name: 'Fadumo Ali',
-      lastMessage: 'Waxaan helay qof arkay wiilka lunsan.',
-      time: '3 hours ago',
-      unread: false,
-      online: false,
-      language: 'so',
-      messages: [
-        { id: 1, sender: 'them', text: 'Waxaan helay qof arkay wiilka lunsan.', time: '8:00 AM' },
-        { id: 2, sender: 'me', text: 'Xagee lagu arkay?', time: '8:05 AM' },
-      ]
-    },
-    {
-      id: 4,
-      name: 'Moses Ochieng',
-      lastMessage: 'Nimepata maelezo mapya kuhusu kesi.',
-      time: '5 hours ago',
-      unread: true,
-      online: false,
-      language: 'luo',
-      messages: [
-        { id: 1, sender: 'them', text: 'Nimepata maelezo mapya kuhusu kesi hiyo.', time: '7:30 AM' },
-      ]
-    },
-    {
-      id: 5,
-      name: 'Sarah Kiprop',
-      lastMessage: 'Chamgei! Engo?',
-      time: '2 hours ago',
-      unread: false,
-      online: true,
-      language: 'kal',
-      messages: [
-        { id: 1, sender: 'them', text: 'Chamgei! Engo?', time: '11:00 AM' },
-        { id: 2, sender: 'me', text: 'Agoi! Engo?', time: '11:05 AM' },
-      ]
-    }
-  ]
-
-  const [currentMessages, setCurrentMessages] = useState([])
-
-  useEffect(() => {
-    if (selectedChat) {
-      setCurrentMessages(selectedChat.messages || [])
-    }
-  }, [selectedChat])
-
-  useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
-    }
-  }, [currentMessages])
-
-  const handleSend = () => {
-    if (!message.trim() || !selectedChat) return
-
-    const lang = detectLanguage(message)
-    const englishTranslation = message
-
-    const newMsg = {
-      id: Date.now(),
-      sender: 'me',
-      original: message,
-      english: englishTranslation,
-      language: lang,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      isTranslated: lang !== 'en'
-    }
-
-    setCurrentMessages(prev => [...prev, newMsg])
-    setMessage('')
-
-    setTimeout(() => {
-      const reply = {
-        id: Date.now() + 1,
-        sender: 'them',
-        original: 'Report received. Case ID: TP' + Date.now().toString().slice(-8),
-        english: 'Report received. Case ID: TP' + Date.now().toString().slice(-8),
-        language: selectedChat.language,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        isTranslated: true
+  // Fetch unread count
+  const fetchUnreadCount = async () => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch('http://localhost:5000/api/messages/unread/count', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setUnreadCount(data.unread_count || 0);
       }
-      setCurrentMessages(prev => [...prev, reply])
-    }, 1500)
+    } catch (err) {
+      console.error('Error fetching unread count:', err);
+    }
+  };
+
+  // Fetch messages
+  const fetchMessages = async () => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch('http://localhost:5000/api/messages', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setMessages(data);
+        // Show notification for new unread messages
+        const unread = data.filter(m => !m.is_read);
+        if (unread.length > 0) {
+          setNotification(`📨 You have ${unread.length} new message${unread.length > 1 ? 's' : ''}`);
+          setTimeout(() => setNotification(null), 5000);
+        }
+      }
+    } catch (err) {
+      console.error('Fetch messages error:', err);
+    }
+  };
+
+  // Fetch users for dropdown
+  const fetchUsers = async () => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch('http://localhost:5000/api/users', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setUsers(data);
+      }
+    } catch (err) {
+      console.error('Fetch users error:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchMessages();
+    fetchUsers();
+    fetchUnreadCount();
+
+    // Check for new messages every 15 seconds
+    const interval = setInterval(() => {
+      fetchMessages();
+      fetchUnreadCount();
+    }, 15000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Send message
+  const handleSend = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch('http://localhost:5000/api/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(newMessage)
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setMessages([data.data, ...messages]);
+        setNewMessage({ recipient_id: '', content: '' });
+        alert('✅ Message sent successfully!');
+        fetchUnreadCount();
+      }
+    } catch (err) {
+      console.error('Send error:', err);
+      alert('Error sending message');
+    }
+  };
+
+  // Mark as read
+  const markAsRead = async (id) => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch(`http://localhost:5000/api/messages/${id}/read`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        setMessages(messages.map(m => m.id === id ? { ...m, is_read: true } : m));
+        fetchUnreadCount();
+        alert('✅ Message marked as read');
+      }
+    } catch (err) {
+      console.error('Mark read error:', err);
+      alert('Error marking message as read');
+    }
+  };
+
+  // DELETE - Remove message - FIXED
+  const handleDelete = async (id) => {
+    if (!window.confirm('⚠️ Are you sure you want to delete this message?')) return;
+    
+    try {
+      const token = localStorage.getItem('accessToken');
+      console.log('🗑️ Deleting message ID:', id);
+      
+      const response = await fetch(`http://localhost:5000/api/messages/${id}`, {
+        method: 'DELETE',
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      console.log('📡 Response status:', response.status);
+      const data = await response.json();
+      console.log('📦 Response data:', data);
+      
+      if (response.ok) {
+        setMessages(messages.filter(m => m.id !== id));
+        alert('✅ Message deleted successfully!');
+        fetchUnreadCount();
+        fetchMessages(); // Refresh the list
+      } else {
+        alert(data.error || '❌ Failed to delete message');
+      }
+    } catch (err) {
+      console.error('❌ Delete error:', err);
+      alert('Error deleting message. Check console for details.');
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
+      </div>
+    );
   }
 
-  const filtered = conversations.filter(c =>
-    c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    getLanguageInfo(c.language)?.name.toLowerCase().includes(searchTerm.toLowerCase())
-  )
-
-  const allLanguages = getSupportedLanguages()
-
   return (
-    <div className="p-6 h-[calc(100vh-120px)]">
-      <div className="flex justify-between items-center mb-6">
+    <div className="p-6 space-y-6">
+      {/* Notification Banner */}
+      {notification && (
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-center justify-between animate-fade-in">
+          <div className="flex items-center gap-2">
+            <Bell className="text-blue-500" size={20} />
+            <span className="text-blue-700">{notification}</span>
+          </div>
+          <button onClick={() => setNotification(null)} className="text-blue-400 hover:text-blue-600">
+            <X size={18} />
+          </button>
+        </div>
+      )}
+
+      {/* Header */}
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Messages</h1>
-          <p className="text-gray-500 dark:text-gray-400 text-sm flex items-center gap-2">
-            <span className="text-green-600">●</span> Auto-translation active
+          <h1 className="text-2xl font-bold text-gray-800">Messages</h1>
+          <p className="text-gray-500">
+            {unreadCount > 0 ? (
+              <span className="text-red-500 font-medium">{unreadCount} unread messages</span>
+            ) : (
+              'No unread messages'
+            )}
           </p>
         </div>
-        <button 
-          onClick={() => setShowTranslation(!showTranslation)}
-          className="flex items-center gap-2 px-4 py-2 bg-green-50 dark:bg-green-950/20 text-green-600 dark:text-green-400 rounded-lg text-sm hover:bg-green-100 dark:hover:bg-green-950/30 transition-colors"
-        >
-          <span className="text-green-600">🌍</span>
-          {showTranslation ? 'Hide Translation' : 'Show Translation'}
-        </button>
+        <div className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-lg">
+          <Clock size={20} className="text-gray-600" />
+          <span className="font-medium">{unreadCount}</span>
+          <span className="text-gray-500 text-sm">unread</span>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
-        {/* Conversations */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden lg:col-span-1 flex flex-col">
-          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-            <div className="relative">
-              <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500"
-              />
-            </div>
-          </div>
-          <div className="overflow-y-auto flex-1">
-            {filtered.map((conv) => (
-              <div
-                key={conv.id}
-                onClick={() => setSelectedChat(conv)}
-                className={`flex items-center gap-3 p-4 hover:bg-green-50 dark:hover:bg-green-950/10 cursor-pointer transition-all ${
-                  selectedChat?.id === conv.id ? 'bg-green-50 dark:bg-green-950/20 border-l-4 border-green-600' : ''
-                }`}
-              >
-                <div className="relative flex-shrink-0">
-                  <div className={`w-11 h-11 rounded-full flex items-center justify-center text-white font-bold text-lg ${
-                    conv.online ? 'bg-green-600' : 'bg-gray-400'
-                  }`}>
-                    {conv.name.charAt(0)}
-                  </div>
-                  {conv.online && (
-                    <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></span>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-start">
-                    <p className="font-semibold text-gray-900 dark:text-white truncate">{conv.name}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">{conv.time}</p>
-                  </div>
-                  <p className={`text-sm truncate ${conv.unread ? 'text-gray-900 dark:text-white font-medium' : 'text-gray-500 dark:text-gray-400'}`}>
-                    {conv.lastMessage}
-                  </p>
-                  <div className="text-xs text-gray-400 mt-0.5">
-                    <span className="text-green-600">{getLanguageInfo(conv.language)?.name}</span>
-                  </div>
-                </div>
-                {conv.unread && (
-                  <div className="w-2 h-2 rounded-full bg-green-600 flex-shrink-0"></div>
-                )}
-              </div>
+      {/* Send Message Form */}
+      <div className="bg-white rounded-2xl shadow-xl p-4 border border-gray-100">
+        <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+          <Send className="text-emerald-500" size={18} />
+          New Message
+        </h3>
+        <form onSubmit={handleSend} className="flex flex-col md:flex-row gap-4">
+          <select
+            value={newMessage.recipient_id}
+            onChange={(e) => setNewMessage({ ...newMessage, recipient_id: e.target.value })}
+            className="flex-1 border border-gray-200 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            required
+          >
+            <option value="">Select Recipient</option>
+            {users.filter(u => u.id !== 4).map(user => (
+              <option key={user.id} value={user.id}>{user.username} ({user.email})</option>
             ))}
-          </div>
+          </select>
+          <input
+            type="text"
+            value={newMessage.content}
+            onChange={(e) => setNewMessage({ ...newMessage, content: e.target.value })}
+            placeholder="Type your message..."
+            className="flex-2 border border-gray-200 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            required
+          />
+          <button
+            type="submit"
+            className="bg-emerald-600 text-white px-6 py-2 rounded-xl flex items-center gap-2 hover:bg-emerald-700 transition shadow-lg shadow-emerald-500/30"
+          >
+            <Send size={18} />
+            Send
+          </button>
+        </form>
+      </div>
+
+      {/* Messages List */}
+      <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+        <div className="px-4 py-3 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+          <span className="font-medium text-gray-700">All Messages</span>
+          <span className="text-sm text-gray-500">{messages.length} total</span>
         </div>
 
-        {/* Chat */}
-        <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col">
-          {selectedChat ? (
-            <>
-              <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${
-                  selectedChat.online ? 'bg-green-600' : 'bg-gray-400'
-                }`}>
-                  {selectedChat.name.charAt(0)}
-                </div>
-                <div>
-                  <p className="font-semibold text-gray-900 dark:text-white">{selectedChat.name}</p>
-                  <div className="flex items-center gap-2 text-xs text-gray-500">
-                    <span className="text-green-600">{getLanguageInfo(selectedChat.language)?.name}</span>
-                    <span className="text-green-600">●</span>
-                    <span className="text-green-600">Auto-translate</span>
-                  </div>
-                </div>
-              </div>
+        {messages.length === 0 ? (
+          <div className="p-8 text-center text-gray-500">
+            <MessageSquare className="mx-auto h-12 w-12 text-gray-300 mb-3" />
+            <p>No messages yet</p>
+            <p className="text-sm text-gray-400">Send a message to get started</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-gray-100 max-h-96 overflow-y-auto">
+            {messages.map((msg) => {
+              const sender = users.find(u => u.id === msg.sender_id);
+              const recipient = users.find(u => u.id === msg.recipient_id);
+              const isUnread = !msg.is_read;
 
-              <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50 dark:bg-gray-900/50">
-                {currentMessages.map((msg) => (
-                  <div key={msg.id} className={`flex ${msg.sender === 'me' ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[75%] rounded-2xl p-3 ${
-                      msg.sender === 'me' 
-                        ? 'bg-green-600 text-white' 
-                        : 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-                    }`}>
-                      {msg.isTranslated && (
-                        <div className="text-[10px] opacity-70 mb-1 flex items-center gap-1">
-                          <span className="text-green-300">🌍</span>
-                          <span>{getLanguageInfo(msg.language)?.name}</span>
-                        </div>
-                      )}
-                      <p className="text-sm">{msg.original}</p>
-                      {showTranslation && msg.isTranslated && msg.english && (
-                        <div className="mt-1 pt-1 border-t border-white/20 dark:border-gray-600/30 text-[10px] text-gray-300 dark:text-gray-400">
-                          📖 {msg.english}
-                        </div>
-                      )}
-                      <span className={`text-[10px] mt-1 block ${msg.sender === 'me' ? 'text-green-200' : 'text-gray-500 dark:text-gray-400'}`}>
-                        {msg.time}
+              return (
+                <div
+                  key={msg.id}
+                  className={`p-4 hover:bg-gray-50 transition ${isUnread ? 'bg-blue-50/50 border-l-4 border-blue-500' : ''}`}
+                >
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-medium text-gray-800">
+                          From: {sender?.username || msg.sender_id}
+                        </span>
+                        <span className="text-gray-400 text-sm">→</span>
+                        <span className="text-gray-600 text-sm">
+                          To: {recipient?.username || msg.recipient_id}
+                        </span>
+                        {isUnread && (
+                          <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full animate-pulse">
+                            New
+                          </span>
+                        )}
+                      </div>
+                      <p className="mt-1 text-gray-700">{msg.content}</p>
+                      <span className="text-xs text-gray-400">
+                        {new Date(msg.created_at).toLocaleString()}
                       </span>
                     </div>
+                    <div className="flex gap-1 ml-4">
+                      {isUnread && (
+                        <button
+                          onClick={() => markAsRead(msg.id)}
+                          className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                          title="Mark as read"
+                        >
+                          <CheckCircle size={16} />
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleDelete(msg.id)}
+                        className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition"
+                        title="Delete"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </div>
-                ))}
-                <div ref={messagesEndRef} />
-              </div>
-
-              <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-                <div className="flex gap-2">
-                  <button className="p-2 hover:bg-green-50 dark:hover:bg-green-950/10 rounded-lg transition-colors">
-                    <Paperclip size={18} className="text-gray-500" />
-                  </button>
-                  <input
-                    type="text"
-                    placeholder={`Type message...`}
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-                    className="flex-1 px-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500"
-                  />
-                  <button className="p-2 hover:bg-green-50 dark:hover:bg-green-950/10 rounded-lg transition-colors">
-                    <Smile size={18} className="text-gray-500" />
-                  </button>
-                  <button
-                    onClick={handleSend}
-                    disabled={!message.trim()}
-                    className={`px-5 py-2.5 rounded-lg ${
-                      message.trim() ? 'bg-green-600 hover:bg-green-700 text-white shadow-lg shadow-green-600/20' : 'bg-gray-300 dark:bg-gray-600 text-gray-500 cursor-not-allowed'
-                    }`}
-                  >
-                    <Send size={18} />
-                  </button>
                 </div>
-                <div className="text-xs text-gray-400 mt-1.5">
-                  <span className="text-green-600">🌍</span> Auto-translate: {getLanguageInfo(selectedChat.language)?.name} ↔ English
-                </div>
-              </div>
-            </>
-          ) : (
-            <div className="flex-1 flex items-center justify-center text-gray-400">
-              <div className="text-center">
-                <div className="text-5xl mb-4">💬</div>
-                <p className="text-lg font-medium">Select a conversation</p>
-                <p className="text-sm text-gray-500">All Kenyan languages supported</p>
-              </div>
-            </div>
-          )}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Messages
+export default Messages;

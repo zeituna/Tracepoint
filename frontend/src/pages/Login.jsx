@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Mail, Lock, CheckCircle, ArrowRight } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, ArrowRight } from 'lucide-react';
 import Logo from '../components/Logo';
 
 const Login = () => {
@@ -10,25 +10,46 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
     setIsLoading(true);
-    setTimeout(() => {
+
+    try {
+      const response = await fetch('http://localhost:5000/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      
+      const data = await response.json();
+      console.log('Login response:', data);
+      
+      if (response.ok && data.access_token) {
+        localStorage.setItem('accessToken', data.access_token);
+        localStorage.setItem('refreshToken', data.refresh_token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        navigate('/dashboard');
+      } else {
+        setError(data.error || data.msg || 'Invalid email or password');
+      }
+    } catch (err) {
+      console.error('Login error:', err);
+      setError('Network error - Please try again');
+    } finally {
       setIsLoading(false);
-      navigate('/dashboard');
-    }, 1500);
+    }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-600 via-emerald-700 to-emerald-900 p-4 relative overflow-hidden">
-      {/* Decorative Elements */}
       <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-400/10 rounded-full blur-3xl"></div>
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-emerald-300/10 rounded-full blur-3xl"></div>
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-emerald-500/5 rounded-full blur-2xl"></div>
       
       <div className="w-full max-w-md relative z-10">
-        {/* Logo and Title */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-4 mb-3">
             <Logo size="lg" />
@@ -44,7 +65,6 @@ const Login = () => {
           <div className="w-20 h-1 bg-emerald-400/50 mx-auto rounded-full mt-2"></div>
         </div>
 
-        {/* Login Card */}
         <div className="bg-white/5 backdrop-blur-xl rounded-3xl shadow-2xl p-8 border border-white/10 hover:border-white/20 transition-all duration-500">
           <div className="mb-8">
             <h2 className="text-3xl font-bold text-white" style={{ fontFamily: "'Playfair Display', serif" }}>
@@ -56,7 +76,6 @@ const Login = () => {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Email Field */}
             <div>
               <label className="block text-sm font-medium text-emerald-100/90 mb-1.5" style={{ fontFamily: "'Inter', sans-serif" }}>
                 Email Address
@@ -75,7 +94,6 @@ const Login = () => {
               </div>
             </div>
 
-            {/* Password Field */}
             <div>
               <label className="block text-sm font-medium text-emerald-100/90 mb-1.5" style={{ fontFamily: "'Inter', sans-serif" }}>
                 Password
@@ -101,7 +119,6 @@ const Login = () => {
               </div>
             </div>
 
-            {/* Remember Me & Forgot Password */}
             <div className="flex items-center justify-between">
               <label className="flex items-center gap-2 text-sm text-emerald-200/80 cursor-pointer" style={{ fontFamily: "'Inter', sans-serif" }}>
                 <input
@@ -120,7 +137,12 @@ const Login = () => {
               </button>
             </div>
 
-            {/* Sign In Button */}
+            {error && (
+              <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
+                <p className="text-red-400 text-sm text-center">{error}</p>
+              </div>
+            )}
+
             <button
               type="submit"
               disabled={isLoading}
@@ -143,7 +165,6 @@ const Login = () => {
               )}
             </button>
 
-            {/* Sign Up Link */}
             <p className="text-center text-sm text-emerald-200/80 mt-4" style={{ fontFamily: "'Inter', sans-serif" }}>
               Don't have an account?{' '}
               <button
@@ -157,7 +178,6 @@ const Login = () => {
           </form>
         </div>
 
-        {/* Footer */}
         <div className="text-center mt-8">
           <p className="text-emerald-200/40 text-xs tracking-wider" style={{ fontFamily: "'Inter', sans-serif" }}>
             © {new Date().getFullYear()} TracePoint. All rights reserved.

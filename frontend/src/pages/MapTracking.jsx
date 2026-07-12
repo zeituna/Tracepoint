@@ -1,174 +1,195 @@
-import React, { useState, useEffect } from 'react'
-import { MapContainer, TileLayer, Marker, Popup, Circle } from 'react-leaflet'
-import L from 'leaflet'
-import { Search, Navigation, MapPin, Filter, Plus, Minus } from 'lucide-react'
-import 'leaflet/dist/leaflet.css'
+import React, { useState, useEffect } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, CircleMarker, useMap, Rectangle } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+import { Search, MapPin, Clock } from 'lucide-react';
 
-// Fix default marker icons
-delete L.Icon.Default.prototype._getIconUrl
+delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-})
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
 
-// Custom icons for different statuses
-const getMarkerIcon = (status) => {
-  const colors = {
-    Active: '#10b981',
-    Pending: '#f59e0b',
-    Resolved: '#3b82f6'
-  }
-  const color = colors[status] || '#6b7280'
-  
-  return new L.Icon({
-    iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${color.replace('#', '')}.png`,
-    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41]
-  })
-}
+const KENYA_BOUNDS = {
+  north: 5.0,
+  south: -5.0,
+  east: 42.0,
+  west: 33.0,
+};
+
+const KENYA_CENTER = [0.0236, 37.9062];
+const KENYA_ZOOM = 6;
+
+const MISSING_PERSONS = [
+  {
+    id: 1,
+    name: 'Amina Hassan',
+    age: 28,
+    location: 'Wajir, Kenya',
+    lat: 1.747067,
+    lng: 40.056061,
+    status: 'active',
+    lastSeen: '2 hours ago',
+    description: 'Last seen wearing blue dress near Wajir market',
+    image: '👩🏾'
+  },
+  {
+    id: 2,
+    name: 'Fatumia Ali',
+    age: 32,
+    location: 'Garissa, Kenya',
+    lat: -0.453229,
+    lng: 39.646097,
+    status: 'pending',
+    lastSeen: '5 hours ago',
+    description: 'Last seen near Garissa town center',
+    image: '👩🏾'
+  },
+  {
+    id: 3,
+    name: 'Mohamed Omar',
+    age: 45,
+    location: 'Nairobi, Kenya',
+    lat: -1.286389,
+    lng: 36.817223,
+    status: 'resolved',
+    lastSeen: '1 day ago',
+    description: 'Found safe in Nairobi',
+    image: '👨🏾'
+  },
+  {
+    id: 4,
+    name: 'Sarah Ochieng',
+    age: 22,
+    location: 'Kisumu, Kenya',
+    lat: -0.102208,
+    lng: 34.761679,
+    status: 'active',
+    lastSeen: '3 hours ago',
+    description: 'Last seen near Kisumu port',
+    image: '👩🏾'
+  },
+  {
+    id: 5,
+    name: 'John Kimani',
+    age: 38,
+    location: 'Mombasa, Kenya',
+    lat: -4.043477,
+    lng: 39.668206,
+    status: 'pending',
+    lastSeen: '6 hours ago',
+    description: 'Last seen at Mombasa beach',
+    image: '👨🏾'
+  },
+  {
+    id: 6,
+    name: 'Mary Wanjiku',
+    age: 16,
+    location: 'Nakuru, Kenya',
+    lat: -0.303099,
+    lng: 36.080026,
+    status: 'active',
+    lastSeen: '1 hour ago',
+    description: 'Last seen near Nakuru town',
+    image: '👩🏾'
+  },
+];
+
+const KenyaBounds = () => {
+  const map = useMap();
+  useEffect(() => {
+    map.setView(KENYA_CENTER, KENYA_ZOOM);
+    const bounds = L.latLngBounds(
+      [KENYA_BOUNDS.south, KENYA_BOUNDS.west],
+      [KENYA_BOUNDS.north, KENYA_BOUNDS.east]
+    );
+    map.setMaxBounds(bounds);
+    map.on('drag', function() {
+      map.panInsideBounds(bounds, { animate: false });
+    });
+    map.setMinZoom(5);
+    map.setMaxZoom(10);
+    return () => { map.off('drag'); };
+  }, [map]);
+  return null;
+};
 
 const MapTracking = () => {
-  const [searchTerm, setSearchTerm] = useState('')
-  const [filterStatus, setFilterStatus] = useState('all')
-  const [selectedLocation, setSelectedLocation] = useState(null)
-  const [mapCenter, setMapCenter] = useState([1.5, 40.5])
-  const [mapZoom, setMapZoom] = useState(7)
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [selectedPerson, setSelectedPerson] = useState(null);
+  const [persons, setPersons] = useState(MISSING_PERSONS);
 
-  const locations = [
-    { 
-      id: 1, 
-      name: 'Amina Hassan', 
-      location: 'Wajir, Kenya', 
-      status: 'Active',
-      lastSeen: '2 hours ago',
-      age: 28,
-      description: 'Last seen wearing blue dress near Wajir market',
-      lat: 1.7471,
-      lng: 40.0686,
-      color: 'green'
-    },
-    { 
-      id: 2, 
-      name: 'Mohamed Ali', 
-      location: 'Mandera, Kenya', 
-      status: 'Active',
-      lastSeen: '4 hours ago',
-      age: 34,
-      description: 'Wearing red jacket, last seen at Mandera bus station',
-      lat: 3.9303,
-      lng: 41.8530,
-      color: 'green'
-    },
-    { 
-      id: 3, 
-      name: 'Fatumia Ibrahim', 
-      location: 'Garissa, Kenya', 
-      status: 'Pending',
-      lastSeen: '6 hours ago',
-      age: 22,
-      description: 'Last seen near Garissa market, wearing green dress',
-      lat: -0.4522,
-      lng: 39.6460,
-      color: 'orange'
-    },
-  ]
-
-  const getStatusColor = (status) => {
-    const colors = {
-      Active: 'text-green-600 bg-green-50 dark:bg-green-950/30',
-      Pending: 'text-yellow-600 bg-yellow-50 dark:bg-yellow-950/30',
-      Resolved: 'text-blue-600 bg-blue-50 dark:bg-blue-950/30'
-    }
-    return colors[status] || 'text-gray-600 bg-gray-50'
-  }
-
-  const getStatusDot = (status) => {
-    const colors = {
-      Active: 'bg-green-500',
-      Pending: 'bg-yellow-500',
-      Resolved: 'bg-blue-500'
-    }
-    return colors[status] || 'bg-gray-500'
-  }
-
-  const filteredLocations = locations.filter(loc => {
-    const matchesSearch = loc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          loc.location.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesFilter = filterStatus === 'all' || loc.status === filterStatus
-    return matchesSearch && matchesFilter
-  })
-
-  const handleLocationClick = (location) => {
-    setSelectedLocation(location)
-    setMapCenter([location.lat, location.lng])
-    setMapZoom(12)
-  }
+  const filteredPersons = persons.filter(person => {
+    const matchesSearch = person.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          person.location.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = filterStatus === 'all' || person.status === filterStatus;
+    return matchesSearch && matchesStatus;
+  });
 
   const stats = {
-    total: locations.length,
-    active: locations.filter(l => l.status === 'Active').length,
-    pending: locations.filter(l => l.status === 'Pending').length,
-    resolved: locations.filter(l => l.status === 'Resolved').length,
-  }
+    total: persons.length,
+    active: persons.filter(p => p.status === 'active').length,
+    pending: persons.filter(p => p.status === 'pending').length,
+    resolved: persons.filter(p => p.status === 'resolved').length,
+  };
+
+  const getStatusBadge = (status) => {
+    const badges = {
+      active: 'bg-red-500',
+      pending: 'bg-yellow-500',
+      resolved: 'bg-green-500',
+    };
+    return badges[status] || 'bg-gray-500';
+  };
 
   return (
-    <div className="p-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Map & Tracking</h1>
-          <p className="text-gray-500 dark:text-gray-400 text-sm">Track missing persons in North Eastern Kenya</p>
-        </div>
-        <button className="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl font-medium transition-all shadow-lg shadow-green-600/20 flex items-center gap-2">
-          <Navigation size={18} />
-          Refresh Location
-        </button>
+    <div className="p-6 space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-800">Map & Tracking</h1>
+        <p className="text-gray-500">Track missing persons across Kenya</p>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
-          <p className="text-xs text-gray-500 dark:text-gray-400">Total</p>
-          <p className="text-xl font-bold text-gray-900 dark:text-white">{stats.total}</p>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-white rounded-xl shadow p-4 border border-gray-100">
+          <p className="text-sm text-gray-500">Total</p>
+          <p className="text-2xl font-bold text-gray-800">{stats.total}</p>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
-          <p className="text-xs text-gray-500 dark:text-gray-400">Active</p>
-          <p className="text-xl font-bold text-green-600">{stats.active}</p>
+        <div className="bg-white rounded-xl shadow p-4 border border-red-100">
+          <p className="text-sm text-gray-500">Active</p>
+          <p className="text-2xl font-bold text-red-600">{stats.active}</p>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
-          <p className="text-xs text-gray-500 dark:text-gray-400">Pending</p>
-          <p className="text-xl font-bold text-yellow-600">{stats.pending}</p>
+        <div className="bg-white rounded-xl shadow p-4 border border-yellow-100">
+          <p className="text-sm text-gray-500">Pending</p>
+          <p className="text-2xl font-bold text-yellow-600">{stats.pending}</p>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
-          <p className="text-xs text-gray-500 dark:text-gray-400">Resolved</p>
-          <p className="text-xl font-bold text-blue-600">{stats.resolved}</p>
+        <div className="bg-white rounded-xl shadow p-4 border border-green-100">
+          <p className="text-sm text-gray-500">Resolved</p>
+          <p className="text-2xl font-bold text-green-600">{stats.resolved}</p>
         </div>
       </div>
 
-      {/* Search & Filter */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-6 flex flex-col sm:flex-row gap-3">
+      <div className="flex flex-col md:flex-row gap-4">
         <div className="flex-1 relative">
-          <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
           <input
             type="text"
             placeholder="Search by name or location..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
         </div>
         <div className="flex gap-2 flex-wrap">
-          {['all', 'Active', 'Pending', 'Resolved'].map((status) => (
+          {['all', 'active', 'pending', 'resolved'].map((status) => (
             <button
               key={status}
               onClick={() => setFilterStatus(status)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+              className={`px-4 py-2 rounded-xl text-sm font-medium transition ${
                 filterStatus === status
-                  ? 'bg-green-600 text-white'
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
+                  ? 'bg-emerald-600 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
               {status.charAt(0).toUpperCase() + status.slice(1)}
@@ -177,137 +198,106 @@ const MapTracking = () => {
         </div>
       </div>
 
-      {/* Map and List */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Map */}
-        <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-          <div className="p-3 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-            <div className="flex items-center gap-2">
-              <MapPin size={18} className="text-green-600" />
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Live Location</span>
-            </div>
-            <div className="text-xs text-gray-400">{filteredLocations.length} markers</div>
-          </div>
-          <div className="h-[450px] w-full relative">
-            <MapContainer
-              center={mapCenter}
-              zoom={mapZoom}
-              style={{ height: '100%', width: '100%' }}
-              zoomControl={false}
-            >
-              <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              />
-              
-              {filteredLocations.map((location) => (
-                <React.Fragment key={location.id}>
-                  <Marker
-                    position={[location.lat, location.lng]}
-                    icon={getMarkerIcon(location.status)}
-                    eventHandlers={{
-                      click: () => handleLocationClick(location),
-                    }}
-                  >
-                    <Popup>
-                      <div className="min-w-[200px] py-1">
-                        <h3 className="font-bold text-gray-900">{location.name}</h3>
-                        <p className="text-sm text-gray-600">{location.location}</p>
-                        <p className="text-xs text-gray-500">🕐 {location.lastSeen}</p>
-                        <p className="text-xs text-gray-500">👤 {location.age} years</p>
-                        <span className={`inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(location.status)}`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${getStatusDot(location.status)}`}></span>
-                          {location.status}
-                        </span>
-                        <button 
-                          className="mt-2 w-full bg-green-600 hover:bg-green-700 text-white text-sm py-1.5 rounded-lg transition-all"
-                          onClick={() => handleLocationClick(location)}
-                        >
-                          View Details
-                        </button>
+        <div className="lg:col-span-2 bg-white rounded-xl shadow overflow-hidden h-[500px]">
+          <MapContainer
+            center={KENYA_CENTER}
+            zoom={KENYA_ZOOM}
+            style={{ height: '100%', width: '100%' }}
+            zoomControl={true}
+            dragging={true}
+            touchZoom={true}
+            scrollWheelZoom={true}
+            minZoom={5}
+            maxZoom={10}
+            maxBounds={L.latLngBounds(
+              [KENYA_BOUNDS.south, KENYA_BOUNDS.west],
+              [KENYA_BOUNDS.north, KENYA_BOUNDS.east]
+            )}
+            maxBoundsViscosity={1.0}
+          >
+            <KenyaBounds />
+            <TileLayer
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            />
+            <Rectangle
+              bounds={[
+                [KENYA_BOUNDS.south, KENYA_BOUNDS.west],
+                [KENYA_BOUNDS.north, KENYA_BOUNDS.east]
+              ]}
+              pathOptions={{ color: '#10b981', weight: 2, opacity: 0.3, fillOpacity: 0 }}
+            />
+
+            {filteredPersons.map((person) => (
+              <CircleMarker
+                key={person.id}
+                center={[person.lat, person.lng]}
+                radius={12}
+                fillColor={person.status === 'active' ? '#ef4444' : person.status === 'pending' ? '#f59e0b' : '#22c55e'}
+                color="white"
+                weight={3}
+                opacity={1}
+                fillOpacity={0.8}
+                eventHandlers={{ click: () => setSelectedPerson(person) }}
+              >
+                <Popup>
+                  <div className="p-2 min-w-[200px]">
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className="text-2xl">{person.image}</span>
+                      <div>
+                        <p className="font-bold text-gray-800">{person.name}</p>
+                        <p className="text-sm text-gray-500">{person.age} years</p>
                       </div>
-                    </Popup>
-                  </Marker>
-
-                  {location.status === 'Active' && (
-                    <Circle
-                      center={[location.lat, location.lng]}
-                      radius={30000}
-                      pathOptions={{
-                        color: '#10b981',
-                        fillColor: '#10b981',
-                        fillOpacity: 0.15,
-                        weight: 2,
-                      }}
-                    />
-                  )}
-                </React.Fragment>
-              ))}
-            </MapContainer>
-
-            {/* Zoom Controls */}
-            <div className="absolute bottom-4 right-4 flex flex-col gap-2 z-[1000]">
-              <button 
-                onClick={() => setMapZoom(mapZoom + 1)}
-                className="bg-white dark:bg-gray-800 p-2 rounded-lg shadow-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-700"
-              >
-                <Plus size={18} className="text-gray-700 dark:text-gray-300" />
-              </button>
-              <button 
-                onClick={() => setMapZoom(mapZoom - 1)}
-                className="bg-white dark:bg-gray-800 p-2 rounded-lg shadow-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-700"
-              >
-                <Minus size={18} className="text-gray-700 dark:text-gray-300" />
-              </button>
-            </div>
-          </div>
+                    </div>
+                    <div className="space-y-1 text-sm">
+                      <p className="flex items-center gap-1"><MapPin className="h-4 w-4 text-gray-400" /><span>{person.location}</span></p>
+                      <p className="flex items-center gap-1"><Clock className="h-4 w-4 text-gray-400" /><span>{person.lastSeen}</span></p>
+                      <p><span className={`px-2 py-0.5 rounded-full text-xs text-white ${getStatusBadge(person.status)}`}>{person.status}</span></p>
+                    </div>
+                  </div>
+                </Popup>
+              </CircleMarker>
+            ))}
+          </MapContainer>
         </div>
 
-        {/* Locations List */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-            <h3 className="font-semibold text-gray-900 dark:text-white">📍 Locations</h3>
-          </div>
-          <div className="max-h-[450px] overflow-y-auto divide-y divide-gray-100 dark:divide-gray-700">
-            {filteredLocations.map((loc) => (
+        <div className="space-y-4 max-h-[500px] overflow-y-auto">
+          {filteredPersons.length === 0 ? (
+            <div className="bg-white rounded-xl shadow p-6 text-center text-gray-500">No persons found</div>
+          ) : (
+            filteredPersons.map((person) => (
               <div
-                key={loc.id}
-                onClick={() => handleLocationClick(loc)}
-                className={`p-4 hover:bg-green-50 dark:hover:bg-green-950/10 cursor-pointer transition-all ${
-                  selectedLocation?.id === loc.id ? 'bg-green-50 dark:bg-green-950/20 border-l-4 border-green-600' : ''
-                }`}
+                key={person.id}
+                className={`bg-white rounded-xl shadow p-4 border-l-4 ${
+                  person.status === 'active' ? 'border-red-500' :
+                  person.status === 'pending' ? 'border-yellow-500' :
+                  'border-green-500'
+                } hover:shadow-md transition cursor-pointer`}
+                onClick={() => setSelectedPerson(person)}
               >
-                <div className="flex justify-between items-start">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-semibold text-gray-900 dark:text-white">{loc.name}</h4>
-                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(loc.status)}`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${getStatusDot(loc.status)}`}></span>
-                        {loc.status}
-                      </span>
+                <div className="flex items-start gap-3">
+                  <span className="text-2xl">{person.image}</span>
+                  <div className="flex-1">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="font-semibold text-gray-800">{person.name}</p>
+                        <p className="text-sm text-gray-500">{person.age} years</p>
+                      </div>
+                      <span className={`px-2 py-0.5 rounded-full text-xs text-white ${getStatusBadge(person.status)}`}>{person.status}</span>
                     </div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">{loc.location}</p>
-                    <div className="flex items-center gap-3 mt-1 text-xs text-gray-400">
-                      <span>🕐 {loc.lastSeen}</span>
-                      <span>👤 {loc.age} years</span>
-                    </div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 italic">{loc.description}</p>
+                    <p className="text-sm text-gray-600 mt-1 flex items-center gap-1"><MapPin className="h-3 w-3" />{person.location}</p>
+                    <p className="text-sm text-gray-600 flex items-center gap-1"><Clock className="h-3 w-3" />{person.lastSeen}</p>
+                    <p className="text-xs text-gray-400 mt-1">{person.description}</p>
                   </div>
-                  <MapPin size={16} className="text-green-600 flex-shrink-0" />
                 </div>
-                {loc.status === 'Active' && (
-                  <div className="mt-2 flex items-center gap-1 text-xs text-green-600">
-                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
-                    Live tracking
-                  </div>
-                )}
               </div>
-            ))}
-          </div>
+            ))
+          )}
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default MapTracking
+export default MapTracking;
