@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock, ArrowRight } from 'lucide-react';
-import Logo from '../components/Logo';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -25,7 +24,6 @@ const Login = () => {
       });
       
       const data = await response.json();
-      console.log('Login response:', data);
       
       if (response.ok && data.access_token) {
         localStorage.setItem('accessToken', data.access_token);
@@ -50,24 +48,20 @@ const Login = () => {
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-emerald-500/5 rounded-full blur-2xl"></div>
       
       <div className="w-full max-w-md relative z-10">
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-4 mb-3">
-            <Logo size="lg" />
-            <div className="text-left">
-              <h1 className="text-4xl font-bold text-white tracking-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
-                TracePoint
-              </h1>
-              <p className="text-emerald-200/90 text-sm font-light tracking-wide" style={{ fontFamily: "'Inter', sans-serif", fontStyle: 'italic' }}>
-                Missing Person Reporting & Tracking System
-              </p>
-            </div>
+        {/* Login Card */}
+        <div className="bg-white/5 backdrop-blur-xl rounded-3xl shadow-2xl p-8 border border-white/10">
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold text-white" style={{ fontFamily: "'Playfair Display', serif" }}>
+              TracePoint
+            </h1>
+            <p className="text-emerald-200/90 text-sm mt-1 font-light" style={{ fontFamily: "'Inter', sans-serif", fontStyle: 'italic' }}>
+              Missing Person Reporting & Tracking System
+            </p>
+            <div className="w-20 h-1 bg-emerald-400/50 mx-auto rounded-full mt-3"></div>
           </div>
-          <div className="w-20 h-1 bg-emerald-400/50 mx-auto rounded-full mt-2"></div>
-        </div>
 
-        <div className="bg-white/5 backdrop-blur-xl rounded-3xl shadow-2xl p-8 border border-white/10 hover:border-white/20 transition-all duration-500">
-          <div className="mb-8">
-            <h2 className="text-3xl font-bold text-white" style={{ fontFamily: "'Playfair Display', serif" }}>
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-white" style={{ fontFamily: "'Playfair Display', serif" }}>
               Welcome Back
             </h2>
             <p className="text-emerald-200/80 text-sm mt-1 font-light" style={{ fontFamily: "'Inter', sans-serif" }}>

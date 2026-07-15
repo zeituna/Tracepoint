@@ -3,7 +3,6 @@ import {
   Heart, 
   Github, 
   Twitter, 
-  Linkedin, 
   Mail, 
   MapPin, 
   Phone, 
@@ -41,7 +40,6 @@ const Footer = () => {
     { icon: Github, href: '#', label: 'GitHub' },
     { icon: Twitter, href: '#', label: 'Twitter' },
     { icon: Facebook, href: '#', label: 'Facebook' },
-    { icon: Linkedin, href: '#', label: 'LinkedIn' },
     { icon: Instagram, href: '#', label: 'Instagram' },
     { icon: Youtube, href: '#', label: 'YouTube' },
   ]

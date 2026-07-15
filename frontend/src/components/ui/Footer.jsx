@@ -73,7 +73,6 @@ const Footer = () => {
             <div className="mt-6">
               <h4 className="text-sm font-semibold text-white mb-3">Follow Us</h4>
               <div className="flex gap-2">
-                {['Github', 'Twitter', 'Facebook', 'LinkedIn', 'Instagram', 'YouTube'].map((social, index) => (
                   <a
                     key={index}
                     href="#"
