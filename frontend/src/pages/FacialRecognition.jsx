@@ -1,6 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
-  Camera, 
   Upload, 
   Search, 
   User, 
@@ -10,8 +9,10 @@ import {
   Calendar,
   Image,
   AlertCircle,
-  X
+  X,
+  Camera
 } from 'lucide-react';
+import CameraCapture from '../components/CameraCapture';
 
 const FacialRecognition = () => {
   const [uploadedImage, setUploadedImage] = useState(null);
@@ -21,26 +22,52 @@ const FacialRecognition = () => {
   const [hasSearched, setHasSearched] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [showCamera, setShowCamera] = useState(false);
-  const [cameraStream, setCameraStream] = useState(null);
-  const [cameraError, setCameraError] = useState('');
-  const [isCameraLoading, setIsCameraLoading] = useState(false);
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
   
   const fileInputRef = useRef(null);
-  const videoRef = useRef(null);
-  const canvasRef = useRef(null);
 
-  // Sample gallery images
   const galleryImages = [
-    { id: 1, name: 'Amina Hassan', age: 28, location: 'Wajir, Kenya', status: 'active', image: '👩🏾', date: '2024-06-29' },
-    { id: 2, name: 'Fatumia Ali', age: 32, location: 'Garissa, Kenya', status: 'pending', image: '👩🏾', date: '2024-06-28' },
-    { id: 3, name: 'Mohamed Omar', age: 45, location: 'Nairobi, Kenya', status: 'resolved', image: '👨🏾', date: '2024-06-27' },
-    { id: 4, name: 'Sarah Ochieng', age: 22, location: 'Kisumu, Kenya', status: 'active', image: '👩🏾', date: '2024-06-26' },
-    { id: 5, name: 'John Kimani', age: 38, location: 'Mombasa, Kenya', status: 'pending', image: '👨🏾', date: '2024-06-25' },
-    { id: 6, name: 'Mary Wanjiku', age: 16, location: 'Nakuru, Kenya', status: 'active', image: '👩🏾', date: '2024-06-24' },
+    { id: 1, name: 'Amina Hassan', age: 28, location: 'Wajir, Kenya', status: 'active', imageUrl: '/images/people/amina-hassan.jpg' },
+    { id: 2, name: 'Sarah Ochieng', age: 22, location: 'Kisumu, Kenya', status: 'active', imageUrl: '/images/people/sarah-ochieng.jpg' },
+    { id: 3, name: 'Mohamed Ali', age: 45, location: 'Garissa, Kenya', status: 'active', imageUrl: '/images/people/mohamed-ali.jpg' },
+    { id: 4, name: 'Fatumia Ali', age: 32, location: 'Garissa, Kenya', status: 'pending', imageUrl: '/images/people/fatuma-ali.jpg' },
+    { id: 5, name: 'John Kimani', age: 38, location: 'Mombasa, Kenya', status: 'pending', imageUrl: '/images/people/john-kimani.jpg' },
+    { id: 6, name: 'Mary Wanjiku', age: 16, location: 'Nakuru, Kenya', status: 'active', imageUrl: '/images/people/mary-wanjiku.jpg' },
   ];
 
-  // Handle file upload
+  const [imageErrors, setImageErrors] = useState({});
+
+  const getInitials = (name) => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  };
+
+  const getStatusBadge = (status) => {
+    const badges = {
+      active: 'bg-red-500',
+      pending: 'bg-yellow-500',
+      resolved: 'bg-green-500',
+    };
+    return badges[status] || 'bg-gray-500';
+  };
+
+  const dataURLtoFile = (dataUrl, filename) => {
+    const [header, data] = dataUrl.split(',');
+    const mimeMatch = header.match(/:(.*?);/);
+    const mime = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+    const binary = atob(data);
+    const array = new Uint8Array(binary.length);
+
+    for (let i = 0; i < binary.length; i += 1) {
+      array[i] = binary.charCodeAt(i);
+    }
+
+    return new File([array], filename, { type: mime });
+  };
+
+  const handleImageError = (id) => {
+    setImageErrors(prev => ({ ...prev, [id]: true }));
+  };
+
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
@@ -73,110 +100,16 @@ const FacialRecognition = () => {
     setTimeout(() => setSuccess(''), 3000);
   };
 
-  // Camera functions - FIXED
-  const startCamera = async () => {
-    setCameraError('');
-    setIsCameraLoading(true);
-    
-    try {
-      // Check if browser supports getUserMedia
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        setCameraError('Your browser does not support camera access');
-        setIsCameraLoading(false);
-        return;
-      }
-
-      // Try to get camera with specific constraints
-      const constraints = {
-        video: {
-          facingMode: 'user',
-          width: { ideal: 640 },
-          height: { ideal: 480 }
-        },
-        audio: false
-      };
-
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      
-      setCameraStream(stream);
-      
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.onloadedmetadata = () => {
-          videoRef.current.play();
-          setIsCameraLoading(false);
-        };
-        videoRef.current.onerror = () => {
-          setCameraError('Error loading video stream');
-          setIsCameraLoading(false);
-        };
-      }
-      
-      setShowCamera(true);
-      setError('');
-    } catch (err) {
-      console.error('Camera error details:', err);
-      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-        setCameraError('Camera access denied. Please allow camera permissions in your browser.');
-      } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
-        setCameraError('No camera found on your device.');
-      } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
-        setCameraError('Camera is being used by another application.');
-      } else {
-        setCameraError(`Camera error: ${err.message || 'Unknown error'}`);
-      }
-      setIsCameraLoading(false);
-    }
-  };
-
-  const stopCamera = () => {
-    if (cameraStream) {
-      cameraStream.getTracks().forEach(track => {
-        track.stop();
-        track.enabled = false;
-      });
-      setCameraStream(null);
-    }
-    setShowCamera(false);
-    setIsCameraLoading(false);
-    if (videoRef.current) {
-      videoRef.current.srcObject = null;
-      videoRef.current.pause();
-    }
-  };
-
-  const capturePhoto = () => {
-    if (videoRef.current && canvasRef.current) {
-      try {
-        const video = videoRef.current;
-        const canvas = canvasRef.current;
-        canvas.width = video.videoWidth || 640;
-        canvas.height = video.videoHeight || 480;
-        const context = canvas.getContext('2d');
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
-        
-        canvas.toBlob((blob) => {
-          if (blob) {
-            const file = new File([blob], 'captured-image.jpg', { type: 'image/jpeg' });
-            processImage(file);
-            stopCamera();
-            setSuccess('Photo captured successfully!');
-            setTimeout(() => setSuccess(''), 3000);
-          }
-        }, 'image/jpeg', 0.9);
-      } catch (err) {
-        setError('Failed to capture photo');
-        console.error('Capture error:', err);
-      }
-    }
-  };
-
-  // Handle upload button click
   const handleUploadClick = () => {
     fileInputRef.current?.click();
   };
 
-  // Handle drag and drop
+  const handleCameraCapture = (imageData) => {
+    const capturedFile = dataURLtoFile(imageData, 'captured-face.jpg');
+    processImage(capturedFile);
+    setIsCameraOpen(false);
+  };
+
   const handleDrop = (event) => {
     event.preventDefault();
     const file = event.dataTransfer.files[0];
@@ -189,10 +122,9 @@ const FacialRecognition = () => {
     event.preventDefault();
   };
 
-  // Handle search/match
   const handleSearch = async () => {
     if (!uploadedImage) {
-      setError('Please upload or capture an image first');
+      setError('Please upload an image first');
       return;
     }
 
@@ -204,7 +136,7 @@ const FacialRecognition = () => {
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       const matchedResults = galleryImages
-        .filter(item => Math.random() > 0.4)
+        .filter(() => Math.random() > 0.4)
         .slice(0, 3)
         .map(item => ({
           ...item,
@@ -228,7 +160,6 @@ const FacialRecognition = () => {
     }
   };
 
-  // Reset search
   const handleReset = () => {
     setUploadedImage(null);
     setPreviewUrl(null);
@@ -236,84 +167,23 @@ const FacialRecognition = () => {
     setHasSearched(false);
     setError('');
     setSuccess('');
-    setCameraError('');
+    setIsCameraOpen(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
-    stopCamera();
   };
-
-  const getStatusBadge = (status) => {
-    const badges = {
-      active: 'bg-red-500',
-      pending: 'bg-yellow-500',
-      resolved: 'bg-green-500',
-    };
-    return badges[status] || 'bg-gray-500';
-  };
-
-  // Cleanup camera on unmount
-  useEffect(() => {
-    return () => {
-      if (cameraStream) {
-        cameraStream.getTracks().forEach(track => track.stop());
-      }
-    };
-  }, [cameraStream]);
 
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-6">
-      {/* Header */}
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Face Recognition</h1>
-          <p className="text-gray-500">Upload or capture an image to find matching records</p>
-        </div>
-        <div className="flex items-center gap-2 text-sm text-gray-400">
-          <Camera size={16} />
-          <span>Version 2.0</span>
+          <p className="text-gray-500">Upload an image to find matching records</p>
         </div>
       </div>
 
-      {/* Upload Section */}
       <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="font-semibold text-gray-700 mb-4">Upload or Capture Image</h2>
-        
-        {/* Camera View */}
-        {showCamera && (
-          <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-            <div className="relative">
-              {isCameraLoading ? (
-                <div className="flex justify-center items-center h-64 bg-black rounded-lg">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
-                </div>
-              ) : (
-                <video
-                  ref={videoRef}
-                  className="w-full max-h-96 rounded-lg bg-black"
-                  autoPlay
-                  playsInline
-                  muted
-                />
-              )}
-              <canvas ref={canvasRef} className="hidden" />
-              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-3">
-                <button
-                  onClick={capturePhoto}
-                  className="px-6 py-2 bg-emerald-600 text-white rounded-full hover:bg-emerald-700 transition shadow-lg"
-                >
-                  Capture
-                </button>
-                <button
-                  onClick={stopCamera}
-                  className="px-6 py-2 bg-red-600 text-white rounded-full hover:bg-red-700 transition shadow-lg"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <h2 className="font-semibold text-gray-700 mb-4">Upload Image</h2>
 
         <div
           className={`border-2 border-dashed rounded-lg p-8 text-center transition ${
@@ -346,27 +216,23 @@ const FacialRecognition = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="flex justify-center gap-6">
+              <div className="flex justify-center">
                 <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center">
                   <Image className="h-10 w-10 text-gray-400" />
-                </div>
-                <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center">
-                  <Camera className="h-10 w-10 text-gray-400" />
                 </div>
               </div>
               <div>
                 <p className="text-gray-600">Drag and drop an image here, or</p>
-                <div className="flex justify-center gap-3 mt-3 flex-wrap">
+                <div className="mt-3 flex items-center justify-center gap-3 flex-wrap">
                   <button
                     onClick={handleUploadClick}
-                    className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition text-sm flex items-center gap-2"
+                    className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition text-sm"
                   >
-                    <Upload size={16} />
                     Browse Files
                   </button>
                   <button
-                    onClick={startCamera}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm flex items-center gap-2"
+                    onClick={() => setIsCameraOpen(true)}
+                    className="px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 transition text-sm flex items-center gap-2"
                   >
                     <Camera size={16} />
                     Open Camera
@@ -385,29 +251,20 @@ const FacialRecognition = () => {
           />
         </div>
 
-        {/* Camera Error */}
-        {cameraError && (
-          <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg flex items-center gap-2 text-yellow-700 text-sm">
-            <AlertCircle size={16} />
-            {cameraError}
-            <button 
-              onClick={() => setCameraError('')} 
-              className="ml-auto text-yellow-500 hover:text-yellow-700"
-            >
-              <X size={16} />
-            </button>
+        {isCameraOpen && (
+          <div className="mt-4 rounded-xl border border-gray-200 overflow-hidden">
+            <CameraCapture
+              onCapture={handleCameraCapture}
+              onClose={() => setIsCameraOpen(false)}
+            />
           </div>
         )}
 
-        {/* Error/Success Messages */}
         {error && (
           <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-600 text-sm">
             <AlertCircle size={16} />
             {error}
-            <button 
-              onClick={() => setError('')} 
-              className="ml-auto text-red-500 hover:text-red-700"
-            >
+            <button onClick={() => setError('')} className="ml-auto text-red-500 hover:text-red-700">
               <X size={16} />
             </button>
           </div>
@@ -419,7 +276,6 @@ const FacialRecognition = () => {
           </div>
         )}
 
-        {/* Action Buttons */}
         {previewUrl && (
           <div className="mt-4 flex gap-3 flex-wrap">
             <button
@@ -449,7 +305,6 @@ const FacialRecognition = () => {
         )}
       </div>
 
-      {/* Results Section */}
       {hasSearched && (
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between mb-4">
@@ -470,7 +325,12 @@ const FacialRecognition = () => {
               {searchResults.map((result) => (
                 <div key={result.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition">
                   <div className="flex items-center gap-3 mb-3">
-                    <span className="text-3xl">{result.image}</span>
+                    <img 
+                      src={result.imageUrl} 
+                      alt={result.name}
+                      className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
+                      onError={() => handleImageError(result.id)}
+                    />
                     <div className="flex-1">
                       <p className="font-semibold text-gray-800">{result.name}</p>
                       <p className="text-sm text-gray-500">{result.age} years</p>
@@ -500,29 +360,52 @@ const FacialRecognition = () => {
         </div>
       )}
 
-      {/* Gallery Section */}
       <div className="bg-white rounded-lg shadow p-6">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-4 border-b border-gray-200 pb-3">
           <div>
-            <h2 className="font-semibold text-gray-700">Records Gallery</h2>
+            <h2 className="text-lg font-bold text-gray-800">Records Gallery</h2>
             <p className="text-xs text-gray-400">Reference images in the system</p>
           </div>
-          <span className="text-sm text-gray-400">{galleryImages.length} records</span>
+          <span className="text-sm bg-gray-100 px-3 py-1 rounded-full">{galleryImages.length} records</span>
         </div>
+        
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {galleryImages.map((item) => (
-            <div key={item.id} className="border border-gray-200 rounded-lg p-4 text-center hover:shadow-md transition group">
-              <span className="text-4xl block mb-2">{item.image}</span>
-              <p className="text-sm font-medium text-gray-800 truncate">{item.name}</p>
-              <p className="text-xs text-gray-500 truncate">{item.location}</p>
-              <div className="flex items-center justify-center gap-2 mt-2">
-                <span className={`px-2 py-0.5 rounded-full text-[10px] text-white ${getStatusBadge(item.status)}`}>
-                  {item.status}
-                </span>
-                <span className="text-xs text-gray-400">{item.age}y</span>
+          {galleryImages.map((person) => {
+            const hasError = imageErrors[person.id];
+            return (
+              <div key={person.id} className="border border-gray-200 rounded-xl p-4 text-center hover:shadow-lg transition duration-300 bg-white">
+                {!hasError ? (
+                  <img 
+                    src={person.imageUrl} 
+                    alt={person.name}
+                    className="w-20 h-20 rounded-full mx-auto mb-3 object-cover border-2 border-gray-200"
+                    onError={() => handleImageError(person.id)}
+                  />
+                ) : (
+                  <div 
+                    className="w-20 h-20 rounded-full mx-auto mb-3 flex items-center justify-center text-white text-2xl font-bold shadow-md"
+                    style={{ backgroundColor: '#10b981' }}
+                  >
+                    {getInitials(person.name)}
+                  </div>
+                )}
+                
+                <p className="text-sm font-semibold text-gray-800 truncate">{person.name}</p>
+                <p className="text-xs text-gray-500 truncate">{person.location}</p>
+                
+                <div className="flex items-center justify-center gap-2 mt-2">
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium text-white ${getStatusBadge(person.status)}`}>
+                    {person.status}
+                  </span>
+                  <span className="text-xs text-gray-400">{person.age}y</span>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
+        </div>
+        
+        <div className="text-center text-xs text-gray-400 mt-4 pt-3 border-t border-gray-200">
+          Showing all {galleryImages.length} records in the gallery
         </div>
       </div>
     </div>

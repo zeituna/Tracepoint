@@ -1,0 +1,8 @@
+<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+  <rect width="200" height="200" fill="#3b82f6" rx="20"/>
+  <circle cx="100" cy="80" r="50" fill="#ffffff" opacity="0.2"/>
+  <circle cx="100" cy="80" r="35" fill="#ffffff" opacity="0.3"/>
+  <rect x="70" y="130" width="60" height="60" rx="10" fill="#ffffff" opacity="0.2"/>
+  <text x="100" y="95" text-anchor="middle" font-size="28" font-weight="bold" fill="white" font-family="Arial">MO</text>
+  <text x="100" y="175" text-anchor="middle" font-size="12" fill="white" font-family="Arial" opacity="0.7">Mohamed Omar</text>
+</svg>
