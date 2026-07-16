@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Mail, Lock, ArrowRight } from 'lucide-react';
+import { Eye, EyeOff, User, Lock, ArrowRight } from 'lucide-react';
+
+// Works with Vite (import.meta.env) and CRA (process.env)
+const API_BASE = import.meta.env?.VITE_API_URL || process?.env?.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 const Login = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -17,25 +20,30 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
+      const response = await fetch(`${API_BASE}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ username, password }),
       });
-      
+
       const data = await response.json();
-      
-      if (response.ok && data.access_token) {
-        localStorage.setItem('accessToken', data.access_token);
-        localStorage.setItem('refreshToken', data.refresh_token);
-        localStorage.setItem('user', JSON.stringify(data.user));
-        navigate('/dashboard');
-      } else {
-        setError(data.error || data.msg || 'Invalid email or password');
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Invalid username or password');
       }
+
+      const { token, user } = data;
+      if (!token || !user) {
+        throw new Error('Invalid response from server');
+      }
+
+      localStorage.setItem('accessToken', token);
+      localStorage.setItem('user', JSON.stringify(user));
+
+      navigate('/dashboard');
     } catch (err) {
       console.error('Login error:', err);
-      setError('Network error - Please try again');
+      setError(err.message || 'Network error – please try again');
     } finally {
       setIsLoading(false);
     }
@@ -48,7 +56,6 @@ const Login = () => {
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-emerald-500/5 rounded-full blur-2xl"></div>
       
       <div className="w-full max-w-md relative z-10">
-        {/* Login Card */}
         <div className="bg-white/5 backdrop-blur-xl rounded-3xl shadow-2xl p-8 border border-white/10">
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-white" style={{ fontFamily: "'Playfair Display', serif" }}>
@@ -72,15 +79,15 @@ const Login = () => {
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="block text-sm font-medium text-emerald-100/90 mb-1.5" style={{ fontFamily: "'Inter', sans-serif" }}>
-                Email Address
+                Username or Email
               </label>
               <div className="relative group">
-                <Mail size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-emerald-300/70 group-focus-within:text-emerald-300 transition-colors" />
+                <User size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-emerald-300/70 group-focus-within:text-emerald-300 transition-colors" />
                 <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="leila@gmail.com"
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="Enter your username or email"
                   className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-emerald-200/50 focus:outline-none focus:ring-2 focus:ring-emerald-400/50 focus:border-transparent transition-all duration-300"
                   style={{ fontFamily: "'Inter', sans-serif" }}
                   required
