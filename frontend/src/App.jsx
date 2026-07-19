@@ -2,6 +2,7 @@ import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import Layout from "./components/layout/Layout";
+import UserLayout from "./components/layout/UserLayout";
 import PublicLayout from "./components/PublicLayout";
 
 // Authentication
@@ -122,9 +123,9 @@ function App() {
           path="/user/dashboard"
           element={
             <PrivateRoute>
-              <Layout>
+              <UserLayout>
                 <UserDashboard />
-              </Layout>
+              </UserLayout>
             </PrivateRoute>
           }
         />
@@ -133,9 +134,9 @@ function App() {
           path="/user/my-reports"
           element={
             <PrivateRoute>
-              <Layout>
+              <UserLayout>
                 <MyReports />
-              </Layout>
+              </UserLayout>
             </PrivateRoute>
           }
         />
@@ -144,9 +145,9 @@ function App() {
           path="/user/profile"
           element={
             <PrivateRoute>
-              <Layout>
+              <UserLayout>
                 <UserProfile />
-              </Layout>
+              </UserLayout>
             </PrivateRoute>
           }
         />
@@ -155,9 +156,9 @@ function App() {
           path="/user/report-missing"
           element={
             <PrivateRoute>
-              <Layout>
+              <UserLayout>
                 <UserReportMissing />
-              </Layout>
+              </UserLayout>
             </PrivateRoute>
           }
         />
