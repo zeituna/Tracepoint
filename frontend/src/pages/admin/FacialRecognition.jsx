@@ -12,8 +12,7 @@ import {
   X,
   Camera
 } from 'lucide-react';
-import CameraCapture from '../components/CameraCapture';
-
+import CameraCapture from '../../components/CameraCapture';
 const FacialRecognition = () => {
   const [uploadedImage, setUploadedImage] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
