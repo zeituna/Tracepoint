@@ -1,3 +1,4 @@
+import os
 from flask import Blueprint, request, jsonify, current_app, redirect, session
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity

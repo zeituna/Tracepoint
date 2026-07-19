@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, User, Lock, ArrowRight } from 'lucide-react';
+import { Eye, EyeOff, User, Lock, ArrowRight, Users } from 'lucide-react';
 
 // ---- Safe API base (ensures /api is present) ----
 const getApiBase = () => {
@@ -20,6 +20,7 @@ const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
+  const [role, setRole] = useState('user'); // 'user' or 'admin'
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -29,10 +30,11 @@ const Login = () => {
     setIsLoading(true);
 
     try {
+      // Optionally send the selected role to the backend if needed
       const response = await fetch(`${API_BASE}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username, password, role }), // role can be included
       });
 
       const data = await response.json();
@@ -48,8 +50,14 @@ const Login = () => {
 
       localStorage.setItem('accessToken', token);
       localStorage.setItem('user', JSON.stringify(user));
+      localStorage.setItem('selectedRole', role); // store for later use
 
-      navigate('/dashboard');
+      // Redirect based on selected role
+      if (role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err) {
       console.error('Login error:', err);
       setError(err.message || 'Network error – please try again');
@@ -126,6 +134,30 @@ const Login = () => {
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
+              </div>
+            </div>
+
+            {/* Role Selection Dropdown */}
+            <div>
+              <label className="block text-sm font-medium text-emerald-100/90 mb-1.5" style={{ fontFamily: "'Inter', sans-serif" }}>
+                Login as
+              </label>
+              <div className="relative group">
+                <Users size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-emerald-300/70 group-focus-within:text-emerald-300 transition-colors" />
+                <select
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-emerald-200/50 focus:outline-none focus:ring-2 focus:ring-emerald-400/50 focus:border-transparent transition-all duration-300 appearance-none"
+                  style={{ fontFamily: "'Inter', sans-serif" }}
+                >
+                  <option value="user" className="text-gray-900">User</option>
+                  <option value="admin" className="text-gray-900">Admin</option>
+                </select>
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                  <svg className="w-4 h-4 text-emerald-300/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
               </div>
             </div>
 

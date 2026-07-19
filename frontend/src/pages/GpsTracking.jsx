@@ -10,4 +10,3 @@ const GpsTracking = () => {
 };
 
 export default GpsTracking;
-

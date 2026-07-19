@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Mail, Lock, User, ArrowRight, CheckCircle, Phone, UserCheck, Shield, AlertCircle } from 'lucide-react';
-import Logo from '../components/Logo';   // adjust path if needed – here it's relative to pages/
+import { 
+  Eye, EyeOff, Mail, Lock, User, ArrowRight, CheckCircle, 
+  Phone, UserCheck, Shield, AlertCircle, Users 
+} from 'lucide-react';
+import Logo from '../components/Logo';   // adjust path if needed
 
 // ---- Read from environment, fallback, ensure /api ----
 const getApiBase = () => {
@@ -26,6 +29,7 @@ const UserRegister = () => {
     username: '',
     password: '',
     confirmPassword: '',
+    role: 'user',           // new: default role
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -122,7 +126,7 @@ const UserRegister = () => {
     e.preventDefault();
     setError('');
     setSuccess('');
-    const { username, password, confirmPassword, email, phone, full_name } = formData;
+    const { username, password, confirmPassword, email, phone, full_name, role } = formData;
     if (!username || !password || !confirmPassword) {
       setError('Username and password are required');
       return;
@@ -142,7 +146,7 @@ const UserRegister = () => {
           phone,
           password,
           full_name,
-          role: 'volunteer',
+          role: role,          // now dynamic
         }),
       });
       const data = await response.json();
@@ -342,6 +346,32 @@ const UserRegister = () => {
           </button>
         </div>
       </div>
+
+      {/* NEW: Role Selection */}
+      <div>
+        <label className="block text-sm font-medium text-emerald-100/90 mb-1.5">
+          Account Type
+        </label>
+        <div className="relative group">
+          <Users size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-emerald-300/70" />
+          <select
+            name="role"
+            value={formData.role}
+            onChange={handleChange}
+            className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-emerald-200/50 focus:outline-none focus:ring-2 focus:ring-emerald-400/50 focus:border-transparent appearance-none"
+          >
+            <option value="user" className="text-gray-900">User</option>
+            <option value="admin" className="text-gray-900">Admin</option>
+          </select>
+          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+            <svg className="w-4 h-4 text-emerald-300/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </div>
+        <p className="text-xs text-emerald-200/60 mt-1">Choose whether you want to register as a regular User or an Admin.</p>
+      </div>
+
       <button
         type="submit"
         disabled={isLoading}
@@ -396,7 +426,7 @@ const UserRegister = () => {
             <p className="text-emerald-200/80 text-sm mt-1 font-light">
               {step === 1 && 'Start by providing your contact details'}
               {step === 2 && `Enter the 6-digit code sent to ${formData.email}`}
-              {step === 3 && 'Almost there! Set your username and password'}
+              {step === 3 && 'Almost there! Set your username, password, and account type'}
             </p>
           </div>
 
@@ -434,4 +464,4 @@ const UserRegister = () => {
   );
 };
 
-export default UserRegister;   // <-- this is crucial
+export default UserRegister;
