@@ -10,6 +10,6 @@ export { default as Organizations } from './Organizations'
 export { default as CaseManagement } from './CaseManagement'
 export { default as ReportsAnalytics } from './ReportsAnalytics'
 export { default as Settings } from './Settings'
-export { default as Login } from './Login'
-export { default as Register } from './Register'
+
+
 export { default as NotFound } from './NotFound'

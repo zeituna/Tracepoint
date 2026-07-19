@@ -1,3 +1,4 @@
+// src/component/HomePage.jsx
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -8,10 +9,15 @@ import {
   Award, Heart, Lock, Send
 } from 'lucide-react';
 
-// Hero Image – Replace with your own
-const heroImage = "https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=600&h=600&fit=crop&crop=center&auto=format";
+// ─── Hero image – your custom URL ─────────────────────────────
+const HERO_IMAGE_URL = 'https://chatgpt.com/backend-api/estuary/content?id=file_00000000fbe471f4aae447e49aa84c80&ts=495641&p=fs&cid=1&sig=db7ba2e2014798b10f5bc35fd6a8e76bd023e13bb49026f4c1dd43e38e2a0c75&v=0';
+const MISSION_IMAGE_URL = 'https://images.unsplash.com/photo-1528605248644-14dd04022da1?w=600&h=400&fit=crop&crop=center&auto=format';
 
-// Animation variants
+// ─── Fallback images if your URLs fail ────────────────────────
+const FALLBACK_HERO = 'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=600&h=600&fit=crop&crop=center&auto=format';
+const FALLBACK_MISSION = 'https://images.unsplash.com/photo-1528605248644-14dd04022da1?w=600&h=400&fit=crop&crop=center&auto=format';
+
+// ─── Animation variants ────────────────────────────────────────
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.25, 0.1, 0.25, 1] } }
@@ -23,7 +29,7 @@ const staggerContainer = {
 };
 
 const HomePage = () => {
-  // Stats data
+  // ─── Stats ──────────────────────────────────────────────────────
   const stats = [
     { value: '1,248', label: 'Reports Managed', icon: FileText, description: 'Total missing person reports filed' },
     { value: '482', label: 'Active Cases', icon: AlertTriangle, description: 'Currently active investigations' },
@@ -33,7 +39,7 @@ const HomePage = () => {
     { value: '24/7', label: 'Emergency Response', icon: Clock, description: 'Round-the-clock support' },
   ];
 
-  // Features data – expanded
+  // ─── Features ──────────────────────────────────────────────────
   const features = [
     { icon: Camera, title: 'Face Recognition', description: 'Advanced AI-powered facial matching to help identify missing persons quickly and accurately.' },
     { icon: MapPin, title: 'Live GPS Tracking', description: 'Real-time location updates for active search operations, ensuring teams are always coordinated.' },
@@ -49,7 +55,7 @@ const HomePage = () => {
     { icon: Heart, title: 'Victim & Family Support', description: 'Provide emotional and practical resources to families during their most difficult time.' },
   ];
 
-  // How it works steps
+  // ─── How it works ─────────────────────────────────────────────
   const steps = [
     { icon: FileText, title: '1. Report', description: 'File a detailed missing person report with photos, descriptions, and last known location.' },
     { icon: Search, title: '2. Search & Track', description: 'Our system coordinates search efforts, tracks progress, and provides real-time updates.' },
@@ -57,7 +63,7 @@ const HomePage = () => {
     { icon: CheckCircle, title: '4. Reunite', description: 'Celebrate successful reunifications and close the case with comprehensive documentation.' },
   ];
 
-  // Testimonials
+  // ─── Testimonials ──────────────────────────────────────────────
   const testimonials = [
     { quote: "TracePoint helped us find my brother within 48 hours. The GPS tracking and community alerts were a game changer.", author: "Sarah M.", role: "Family Member" },
     { quote: "As a law enforcement officer, I've seen many systems, but TracePoint's intuitive design and real-time data made our search operation much more efficient.", author: "Inspector Kiprop", role: "Police Department" },
@@ -65,7 +71,7 @@ const HomePage = () => {
     { quote: "The mobile app and instant alerts allowed our community to mobilize quickly. We found the missing child within hours.", author: "Community Leader", role: "Volunteer Network" },
   ];
 
-  // Blog/Updates
+  // ─── Blog posts ──────────────────────────────────────────────
   const blogPosts = [
     { title: "New Partnership with National Police", date: "May 15, 2024", excerpt: "TracePoint joins forces with law enforcement to enhance search operations across the country." },
     { title: "Introducing Advanced Face Recognition", date: "May 10, 2024", excerpt: "Our new AI-powered face matching feature significantly improves identification accuracy." },
@@ -74,7 +80,7 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen bg-white overflow-x-hidden">
-      {/* ========== HERO SECTION – Reduced top padding, original image size ========== */}
+      {/* ========== HERO SECTION ========== */}
       <section className="relative overflow-hidden bg-gradient-to-br from-emerald-50 via-white to-emerald-50/50 pt-8 pb-16 md:pt-12 md:pb-24">
         {/* Animated background elements */}
         <div className="absolute inset-0 bg-grid-slate-100 [mask-image:radial-gradient(ellipse_at_center,white,transparent)]"></div>
@@ -91,7 +97,7 @@ const HomePage = () => {
 
         <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
           <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
-            {/* Left Content */}
+            {/* ─── Left Content ─────────────────────────────────── */}
             <motion.div
               className="flex-1 text-center lg:text-left"
               initial="hidden"
@@ -136,7 +142,7 @@ const HomePage = () => {
               </motion.div>
             </motion.div>
 
-            {/* Right Image – Smaller Blob Shape (original size) */}
+            {/* ─── Right Image – with your custom URL ──────────── */}
             <motion.div
               initial={{ opacity: 0, scale: 0.9, x: 50 }}
               animate={{ opacity: 1, scale: 1, x: 0 }}
@@ -144,19 +150,20 @@ const HomePage = () => {
               className="hidden lg:flex relative justify-center"
             >
               <div className="relative">
-                {/* Glow behind */}
                 <div className="absolute -inset-4 rounded-full bg-emerald-500/20 blur-3xl" />
 
-                {/* Blob shape – original dimensions */}
                 <div className="relative rounded-[40%_60%_55%_45%/45%_40%_60%_55%] overflow-hidden shadow-2xl border-4 border-white/20">
                   <img
-                    src={heroImage}
+                    src={HERO_IMAGE_URL}
                     alt="TracePoint – Missing person search"
                     className="h-[400px] lg:h-[450px] w-full object-cover"
+                    onError={(e) => {
+                      e.target.src = FALLBACK_HERO;
+                    }}
                   />
                 </div>
 
-                {/* Floating badges – positioned around the image */}
+                {/* Floating badges */}
                 <motion.div
                   className="absolute -bottom-4 -left-4 bg-white/90 backdrop-blur-md rounded-xl shadow-lg p-3 flex items-center gap-3 border border-white/50"
                   initial={{ y: 20, opacity: 0 }}
@@ -200,7 +207,7 @@ const HomePage = () => {
           </div>
         </div>
 
-        {/* Decorative wave */}
+        {/* ─── Decorative wave ─────────────────────────────────── */}
         <div className="absolute bottom-0 left-0 right-0">
           <svg viewBox="0 0 1440 80" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M0 80 L1440 80 L1440 0 C1440 0 1200 60 720 60 C240 60 0 0 0 0 L0 80Z" fill="white" />
@@ -208,7 +215,7 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* ========== TRUSTED BY SECTION ========== */}
+      {/* ========== TRUSTED BY ========== */}
       <section className="py-12 bg-white border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <motion.p 
@@ -235,7 +242,7 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* ========== STATS SECTION ========== */}
+      {/* ========== STATS ========== */}
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <motion.div
@@ -261,7 +268,7 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* ========== FEATURES SECTION – Expanded ========== */}
+      {/* ========== FEATURES ========== */}
       <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <motion.div
@@ -300,7 +307,7 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* ========== ABOUT / MISSION SECTION ========== */}
+      {/* ========== ABOUT / MISSION ========== */}
       <section className="py-20 bg-white">
         <div className="max-w-6xl mx-auto px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
@@ -332,9 +339,12 @@ const HomePage = () => {
             >
               <div className="absolute -inset-4 bg-emerald-500/10 rounded-3xl blur-2xl"></div>
               <img
-                src="https://images.unsplash.com/photo-1528605248644-14dd04022da1?w=600&h=400&fit=crop&crop=center&auto=format"
+                src={MISSION_IMAGE_URL}
                 alt="Team working together"
                 className="relative rounded-2xl shadow-2xl w-full h-[400px] object-cover border border-white/20"
+                onError={(e) => {
+                  e.target.src = FALLBACK_MISSION;
+                }}
               />
             </motion.div>
           </div>
@@ -537,41 +547,7 @@ const HomePage = () => {
       </section>
 
       {/* ========== FOOTER ========== */}
-      <footer className="bg-gray-900 text-gray-400 py-12">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 grid grid-cols-2 md:grid-cols-4 gap-8">
-          <div>
-            <h4 className="text-white font-semibold mb-4">TracePoint</h4>
-            <p className="text-sm">Missing Person Reporting & Tracking System</p>
-          </div>
-          <div>
-            <h5 className="text-white font-semibold mb-4">Product</h5>
-            <ul className="space-y-2 text-sm">
-              <li><Link to="#" className="hover:text-white transition">Features</Link></li>
-              <li><Link to="#" className="hover:text-white transition">Pricing</Link></li>
-              <li><Link to="#" className="hover:text-white transition">Security</Link></li>
-            </ul>
-          </div>
-          <div>
-            <h5 className="text-white font-semibold mb-4">Company</h5>
-            <ul className="space-y-2 text-sm">
-              <li><Link to="#" className="hover:text-white transition">About</Link></li>
-              <li><Link to="#" className="hover:text-white transition">Careers</Link></li>
-              <li><Link to="#" className="hover:text-white transition">Contact</Link></li>
-            </ul>
-          </div>
-          <div>
-            <h5 className="text-white font-semibold mb-4">Support</h5>
-            <ul className="space-y-2 text-sm">
-              <li><Link to="#" className="hover:text-white transition">Help Center</Link></li>
-              <li><Link to="#" className="hover:text-white transition">Privacy Policy</Link></li>
-              <li><Link to="#" className="hover:text-white transition">Terms of Service</Link></li>
-            </ul>
-          </div>
-        </div>
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 border-t border-gray-800 mt-12 pt-8 text-sm text-center">
-          <p>&copy; 2024 TracePoint. All rights reserved. Made with ❤️ for families everywhere.</p>
-        </div>
-      </footer>
+      
     </div>
   );
 };

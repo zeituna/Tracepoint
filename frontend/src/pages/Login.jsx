@@ -2,8 +2,17 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, User, Lock, ArrowRight } from 'lucide-react';
 
-// Works with Vite (import.meta.env) and CRA (process.env)
-const API_BASE = import.meta.env?.VITE_API_URL || process?.env?.REACT_APP_API_URL || 'http://localhost:5000/api';
+// ---- Safe API base (ensures /api is present) ----
+const getApiBase = () => {
+  let base = import.meta.env?.VITE_API_URL || process?.env?.REACT_APP_API_URL || 'http://localhost:5000/api';
+  base = base.replace(/\/+$/, '');
+  if (!base.endsWith('/api')) {
+    base += '/api';
+  }
+  return base;
+};
+
+const API_BASE = getApiBase();
 
 const Login = () => {
   const navigate = useNavigate();

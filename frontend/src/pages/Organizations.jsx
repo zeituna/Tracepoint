@@ -2,7 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { Building2, Users, Plus, Edit, Trash2, Search, Mail, MapPin, Phone, Award, Shield, Globe } from 'lucide-react';
 
 const Organizations = () => {
-  const [organizations, setOrganizations] = useState([
+import React from 'react';
+
+const Organizations = () => {
+  return (
+    <div className="p-6">
+      <h1 className="text-2xl font-bold text-gray-800">Organizations</h1>
+      <p className="text-gray-500 mt-2">Manage partner organizations and NGOs.</p>
+    </div>
+  );
+};
+
+export default Organizations;  const [organizations, setOrganizations] = useState([
     // ===== NORTH EASTERN REGION =====
     {
       id: 1,

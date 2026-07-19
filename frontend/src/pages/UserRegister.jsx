@@ -1,11 +1,21 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock, User, ArrowRight, CheckCircle, Phone, UserCheck, Shield, AlertCircle } from 'lucide-react';
-import Logo from '../../components/Logo';
+import Logo from '../components/Logo';   // adjust path if needed – here it's relative to pages/
 
-const API_BASE = import.meta.env?.VITE_API_URL || process?.env?.REACT_APP_API_URL || 'http://localhost:5000/api';
+// ---- Read from environment, fallback, ensure /api ----
+const getApiBase = () => {
+  let base = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+  base = base.replace(/\/+$/, '');
+  if (!base.endsWith('/api')) {
+    base += '/api';
+  }
+  return base;
+};
 
-const Register = () => {
+const API_BASE = getApiBase();
+
+const UserRegister = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
@@ -25,7 +35,7 @@ const Register = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
     setError('');
   };
 
@@ -41,7 +51,7 @@ const Register = () => {
     }
     setIsLoading(true);
     try {
-      console.log('🔥 NEW Register: calling /start');
+      console.log('📡 API_BASE:', API_BASE);
       const response = await fetch(`${API_BASE}/auth/register/start`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -151,19 +161,23 @@ const Register = () => {
     <div className="flex items-center justify-center gap-4 mb-6">
       {[1, 2, 3].map((s) => (
         <div key={s} className="flex items-center">
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
-            s === step
-              ? 'bg-emerald-400 text-emerald-900'
-              : s < step
-              ? 'bg-emerald-600/60 text-white'
-              : 'bg-white/10 text-white/50'
-          }`}>
+          <div
+            className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
+              s === step
+                ? 'bg-emerald-400 text-emerald-900'
+                : s < step
+                ? 'bg-emerald-600/60 text-white'
+                : 'bg-white/10 text-white/50'
+            }`}
+          >
             {s < step ? <CheckCircle size={16} /> : s}
           </div>
           {s < 3 && (
-            <div className={`w-12 h-0.5 mx-1 ${
-              s < step ? 'bg-emerald-500/50' : 'bg-white/10'
-            }`} />
+            <div
+              className={`w-12 h-0.5 mx-1 ${
+                s < step ? 'bg-emerald-500/50' : 'bg-white/10'
+              }`}
+            />
           )}
         </div>
       ))}
@@ -420,4 +434,4 @@ const Register = () => {
   );
 };
 
-export default Register;
+export default UserRegister;   // <-- this is crucial

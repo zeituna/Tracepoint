@@ -1,135 +1,136 @@
-import React from 'react'
-import { NavLink } from 'react-router-dom'
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
   FileText,
   MapPin,
-  Camera,
-  MessageSquare,
-  Bell,
-  BarChart3,
-  Users,
-  Building2,
-  FolderKanban,
-  PieChart,
+  Scan,
   Settings,
-} from 'lucide-react'
-import Logo from '../../Logo'
+  LogOut,
+  Circle,
+  Zap,
+  MessageSquare,
+  Users,
+  Satellite,
+} from 'lucide-react';
 
-const Sidebar = ({ isOpen }) => {
-  const navItems = [
-    { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-    { path: '/reports', icon: FileText, label: 'Reports' },
-    { path: '/map-tracking', icon: MapPin, label: 'Map & Tracking' },
-    { path: '/facial-recognition', icon: Camera, label: 'Facial Recognition' },
-    { path: '/messages', icon: MessageSquare, label: 'Messages' },
-    { path: '/alerts', icon: Bell, label: 'Alerts' },
-    { path: '/statistics', icon: BarChart3, label: 'Statistics' },
-  ]
+const Sidebar = () => {
+  const location = useLocation();
+  const [currentTime, setCurrentTime] = useState(new Date());
 
-  const managementItems = [
-    { path: '/users', icon: Users, label: 'Users' },
-    { path: '/organizations', icon: Building2, label: 'Organizations' },
-    { path: '/case-management', icon: FolderKanban, label: 'Case Management' },
-    { path: '/reports-analytics', icon: PieChart, label: 'Reports & Analytics' },
-  ]
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const isActive = (path) => location.pathname === path;
+
+  const menuItems = [
+    { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { path: '/reports', label: 'Reports', icon: FileText },
+    { path: '/map-tracking', label: 'Map Tracking', icon: MapPin },
+    { path: '/facial-recognition', label: 'Facial Recognition', icon: Scan },
+    { path: '/messages', label: 'Messages', icon: MessageSquare },
+    { path: '/organizations', label: 'Organizations', icon: Users },
+    { path: '/gps-tracking', label: 'GPS Tracking', icon: Satellite },
+  ];
 
   return (
-    <aside className={`fixed left-0 top-0 h-full w-64 border-r border-amber-200/10 bg-[linear-gradient(180deg,rgba(6,45,32,0.98)_0%,rgba(5,21,18,0.98)_100%)] text-white transition-transform duration-300 z-20 backdrop-blur-xl ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 shadow-[0_20px_60px_rgba(0,0,0,0.45)]`}>
-      <div className="absolute top-0 right-0 w-40 h-40 bg-amber-300/10 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-0 left-0 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl"></div>
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-300/70 to-transparent"></div>
-
-      <div className="relative z-10 flex items-center gap-3 px-4 h-20 border-b border-amber-200/10 bg-white/[0.02]">
-        <Logo size="lg" />
-        <div className="min-w-0">
-          <h1 className="text-[1.35rem] font-bold text-white leading-none" style={{ fontFamily: "'Playfair Display', serif" }}>
-            TracePoint
-          </h1>
-          <p className="text-[10px] text-amber-100/75 mt-1 tracking-[0.16em] font-medium" style={{ fontFamily: "'Inter', sans-serif" }}>
-            Missing Person Tracking & Reporting System
-          </p>
+    <aside className="fixed top-0 left-0 h-full w-72 bg-white shadow-2xl border-r border-gray-100 flex flex-col z-50 transition-all duration-300">
+      
+      {/* ─── Logo ────────────────────────────────────────────── */}
+      <div className="flex items-center gap-3 px-6 h-20 bg-gradient-to-r from-emerald-50 to-white border-b border-gray-100">
+        <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-emerald-200/60">
+          TP
+        </div>
+        <div>
+          <h1 className="text-xl font-bold text-gray-800 tracking-tight">TracePoint</h1>
+          <p className="text-[9px] text-gray-400 uppercase tracking-[0.2em] font-semibold">Missing Person System</p>
         </div>
       </div>
 
-      <nav className="relative z-10 p-3 overflow-y-auto h-[calc(100vh-5rem)]">
-        <div className="space-y-1">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              className={({ isActive }) => `
-                group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-300
-                ${isActive
-                  ? 'bg-white/10 text-white shadow-[0_8px_24px_rgba(18,42,28,0.55)] ring-1 ring-amber-300/20'
-                  : 'text-emerald-100/70 hover:bg-white/5 hover:text-white hover:translate-x-0.5'
-                }
-              `}
-            >
-              <div className={`flex h-9 w-9 items-center justify-center rounded-full border transition-all duration-300 ${
-                isActive
-                  ? 'border-amber-300/40 bg-[linear-gradient(135deg,rgba(252,211,77,0.28),rgba(245,158,11,0.12))] shadow-[0_0_18px_rgba(245,158,11,0.18)]'
-                  : 'border-amber-200/10 bg-white/[0.03] group-hover:border-amber-300/20 group-hover:bg-white/[0.06]'
-              }`}>
-                <item.icon className={`h-[18px] w-[18px] transition-all duration-300 ${isActive ? 'text-amber-100' : 'text-amber-100/80 group-hover:text-amber-50'}`} strokeWidth={2.15} />
-              </div>
-              <span className="font-semibold tracking-[0.02em]">{item.label}</span>
-            </NavLink>
-          ))}
-        </div>
-
-        <div className="mt-6 pt-4 border-t border-amber-200/10">
-          <p className="px-3 text-[11px] font-semibold text-amber-100/65 uppercase tracking-[0.18em]">Management</p>
-          <div className="mt-2 space-y-1">
-            {managementItems.map((item) => (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                className={({ isActive }) => `
-                  group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-300 pl-9
-                  ${isActive
-                    ? 'bg-white/10 text-white shadow-[0_8px_24px_rgba(18,42,28,0.55)] ring-1 ring-amber-300/20'
-                    : 'text-emerald-100/70 hover:bg-white/5 hover:text-white hover:translate-x-0.5'
-                  }
-                `}
-              >
-                <div className={`flex h-8 w-8 items-center justify-center rounded-full border transition-all duration-300 ${
-                  isActive
-                    ? 'border-amber-300/40 bg-[linear-gradient(135deg,rgba(252,211,77,0.28),rgba(245,158,11,0.12))] shadow-[0_0_18px_rgba(245,158,11,0.18)]'
-                    : 'border-amber-200/10 bg-white/[0.03] group-hover:border-amber-300/20 group-hover:bg-white/[0.06]'
-                }`}>
-                  <item.icon className={`h-[17px] w-[17px] transition-all duration-300 ${isActive ? 'text-amber-100' : 'text-amber-100/80 group-hover:text-amber-50'}`} strokeWidth={2.05} />
-                </div>
-                <span className="font-medium">{item.label}</span>
-              </NavLink>
-            ))}
-          </div>
-        </div>
-
-        <div className="mt-6 pt-4 border-t border-amber-200/10">
-          <NavLink
-            to="/settings"
-            className={({ isActive }) => `
-              group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-300
-              ${isActive
-                ? 'bg-white/10 text-white shadow-[0_8px_24px_rgba(18,42,28,0.55)] ring-1 ring-amber-300/20'
-                : 'text-emerald-100/70 hover:bg-white/5 hover:text-white hover:translate-x-0.5'
-              }
-            `}
-          >
-            <div className={`flex h-9 w-9 items-center justify-center rounded-full border transition-all duration-300 ${
-              isActive
-                ? 'border-amber-300/40 bg-[linear-gradient(135deg,rgba(252,211,77,0.28),rgba(245,158,11,0.12))] shadow-[0_0_18px_rgba(245,158,11,0.18)]'
-                : 'border-amber-200/10 bg-white/[0.03] group-hover:border-amber-300/20 group-hover:bg-white/[0.06]'
-            }`}>
-              <Settings className={`h-[18px] w-[18px] transition-all duration-300 ${isActive ? 'text-amber-100' : 'text-amber-100/80 group-hover:text-amber-50'}`} strokeWidth={2.15} />
-            </div>
-            <span className="font-semibold tracking-[0.02em]">Settings</span>
-          </NavLink>
-        </div>
+      {/* ─── Navigation ──────────────────────────────────────── */}
+      <nav className="flex-1 px-4 py-6 overflow-y-auto">
+        <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-[0.2em] px-2 mb-4">
+          Main Menu
+        </p>
+        <ul className="space-y-1.5">
+          {menuItems.map((item) => {
+            const Icon = item.icon;
+            const active = isActive(item.path);
+            return (
+              <li key={item.path}>
+                <Link
+                  to={item.path}
+                  className={`relative flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
+                    active
+                      ? 'bg-emerald-50 text-emerald-700 shadow-sm shadow-emerald-100/40'
+                      : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                >
+                  {active && (
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-emerald-500 rounded-r-full shadow-sm shadow-emerald-200" />
+                  )}
+                  <Icon
+                    size={20}
+                    className={`transition-colors ${
+                      active ? 'text-emerald-600' : 'text-gray-400 group-hover:text-gray-600'
+                    }`}
+                  />
+                  <span className="text-sm font-medium">{item.label}</span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
       </nav>
-    </aside>
-  )
-}
 
-export default Sidebar
+      {/* ─── Bottom ──────────────────────────────────────────── */}
+      <div className="border-t border-gray-100 px-4 py-4 space-y-3">
+        {/* Status & Time */}
+        <div className="flex items-center justify-between px-4 py-2 bg-gray-50/80 rounded-xl border border-gray-100/50">
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+            </span>
+            <span className="text-xs text-gray-600 font-medium">Online</span>
+          </div>
+          <span className="text-xs text-gray-400 font-mono">
+            {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+          </span>
+        </div>
+
+        {/* Actions */}
+        <div className="flex gap-2">
+          <Link
+            to="/settings"
+            className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 text-gray-500 hover:bg-gray-50 hover:text-gray-700 rounded-xl transition text-sm font-medium border border-transparent hover:border-gray-200"
+          >
+            <Settings size={18} />
+            Settings
+          </Link>
+          <button
+            onClick={() => {
+              localStorage.removeItem('accessToken');
+              localStorage.removeItem('user');
+              window.location.href = '/login';
+            }}
+            className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 text-red-500 hover:bg-red-50 hover:text-red-600 rounded-xl transition text-sm font-medium border border-transparent hover:border-red-200"
+          >
+            <LogOut size={18} />
+            Logout
+          </button>
+        </div>
+
+        {/* Version */}
+        <div className="flex items-center justify-center gap-1.5 text-[10px] text-gray-400">
+          <Zap size={12} className="text-emerald-400" />
+          <span className="tracking-wider">v2.0.0 · Secure</span>
+        </div>
+      </div>
+    </aside>
+  );
+};
+
+export default Sidebar;

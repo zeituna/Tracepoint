@@ -3,7 +3,6 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/layout/Layout';
 import PublicLayout from './components/PublicLayout';
 import Login from './pages/Login';
-import Register from './pages/public/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
@@ -18,8 +17,13 @@ import Statistics from './pages/Statistics';
 import Settings from './pages/Settings';
 import Profile from './pages/Profile';
 
+// ─── New pages (create these files) ──────────────────────────
+import Organizations from './pages/Organizations';
+import GpsTracking from './pages/GpsTracking';
+
 // Public Pages
 import HomePage from './pages/public/Home';
+import UserRegister from './pages/UserRegister';
 import About from './pages/public/About';
 import Contact from './pages/public/Contact';
 import Services from './pages/public/Services';
@@ -39,12 +43,14 @@ import NotFound from './pages/NotFound';
 import Forbidden from './pages/Forbidden';
 import ServerError from './pages/ServerError';
 
+// ─── Private Route wrapper ──────────────────────────────────
 const PrivateRoute = ({ children }) => {
   const token = localStorage.getItem('accessToken');
   if (!token) return <Navigate to="/login" />;
   return children;
 };
 
+// ─── App ──────────────────────────────────────────────────────
 function App() {
   return (
     <BrowserRouter>
@@ -68,7 +74,7 @@ function App() {
         
         {/* Authentication */}
         <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        <Route path="/register" element={<UserRegister />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
 
@@ -114,11 +120,31 @@ function App() {
           }
         />
         <Route
+          path="/organizations"
+          element={
+            <PrivateRoute>
+              <Layout>
+                <Organizations />
+              </Layout>
+            </PrivateRoute>
+          }
+        />
+        <Route
           path="/map-tracking"
           element={
             <PrivateRoute>
               <Layout>
                 <MapTracking />
+              </Layout>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/gps-tracking"
+          element={
+            <PrivateRoute>
+              <Layout>
+                <GpsTracking />
               </Layout>
             </PrivateRoute>
           }

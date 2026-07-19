@@ -1,7 +1,0 @@
-<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
-  <rect width="200" height="200" fill="#ec4899" rx="20"/>
-  <circle cx="100" cy="80" r="45" fill="white" opacity="0.3"/>
-  <circle cx="100" cy="80" r="30" fill="white" opacity="0.4"/>
-  <rect x="70" y="130" width="60" height="60" rx="10" fill="white" opacity="0.3"/>
-  <text x="100" y="110" text-anchor="middle" font-size="24" font-weight="bold" fill="white" font-family="Arial">MW</text>
-</svg>
