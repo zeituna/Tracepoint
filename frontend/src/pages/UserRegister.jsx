@@ -1,21 +1,17 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Eye, EyeOff, Mail, Lock, User, ArrowRight, CheckCircle, 
-  Phone, UserCheck, Shield, AlertCircle, Users 
+import {
+  Eye, EyeOff, Mail, Lock, User, ArrowRight, CheckCircle,
+  Phone, UserCheck, Shield, AlertCircle, Users, Loader2
 } from 'lucide-react';
-import Logo from '../components/Logo';   // adjust path if needed
 
-// ---- Read from environment, fallback, ensure /api ----
+// ---- API base ----
 const getApiBase = () => {
   let base = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
   base = base.replace(/\/+$/, '');
-  if (!base.endsWith('/api')) {
-    base += '/api';
-  }
+  if (!base.endsWith('/api')) base += '/api';
   return base;
 };
-
 const API_BASE = getApiBase();
 
 const UserRegister = () => {
@@ -29,7 +25,7 @@ const UserRegister = () => {
     username: '',
     password: '',
     confirmPassword: '',
-    role: 'user',           // new: default role
+    role: 'volunteer',
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -39,11 +35,11 @@ const UserRegister = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData(prev => ({ ...prev, [name]: value }));
     setError('');
   };
 
-  // Step 1: send code
+  // ─── API calls ──────────────────────────────────────────────
   const handleSendCode = async (e) => {
     e.preventDefault();
     setError('');
@@ -55,14 +51,13 @@ const UserRegister = () => {
     }
     setIsLoading(true);
     try {
-      console.log('📡 API_BASE:', API_BASE);
-      const response = await fetch(`${API_BASE}/auth/register/start`, {
+      const res = await fetch(`${API_BASE}/auth/register/start`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, phone, full_name }),
       });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || 'Failed to send code');
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to send code');
       setSuccess('Verification code sent to your email');
       setStep(2);
     } catch (err) {
@@ -72,7 +67,6 @@ const UserRegister = () => {
     }
   };
 
-  // Step 2: verify code
   const handleVerifyCode = async (e) => {
     e.preventDefault();
     setError('');
@@ -84,13 +78,13 @@ const UserRegister = () => {
     }
     setIsLoading(true);
     try {
-      const response = await fetch(`${API_BASE}/auth/register/verify-email`, {
+      const res = await fetch(`${API_BASE}/auth/register/verify-email`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, code }),
       });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || 'Verification failed');
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Verification failed');
       setSuccess('Email verified!');
       setStep(3);
     } catch (err) {
@@ -100,19 +94,18 @@ const UserRegister = () => {
     }
   };
 
-  // Resend
   const handleResendCode = async () => {
     setError('');
     setSuccess('');
     setIsLoading(true);
     try {
-      const response = await fetch(`${API_BASE}/auth/register/resend-code`, {
+      const res = await fetch(`${API_BASE}/auth/register/resend-code`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: formData.email }),
       });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || 'Failed to resend');
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to resend');
       setSuccess('New code sent');
     } catch (err) {
       setError(err.message);
@@ -121,7 +114,6 @@ const UserRegister = () => {
     }
   };
 
-  // Step 3: complete
   const handleComplete = async (e) => {
     e.preventDefault();
     setError('');
@@ -137,20 +129,15 @@ const UserRegister = () => {
     }
     setIsLoading(true);
     try {
-      const response = await fetch(`${API_BASE}/auth/register/complete`, {
+      const res = await fetch(`${API_BASE}/auth/register/complete`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          username,
-          email,
-          phone,
-          password,
-          full_name,
-          role: role,          // now dynamic
+          username, email, phone, password, full_name, role,
         }),
       });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || 'Registration failed');
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Registration failed');
       setSuccess('Account created! Redirecting...');
       setTimeout(() => navigate('/login'), 1500);
     } catch (err) {
@@ -160,124 +147,136 @@ const UserRegister = () => {
     }
   };
 
-  // ─── UI helpers ─────────────────────────────────────────────
+  // ─── UI ──────────────────────────────────────────────────────
   const StepIndicator = () => (
     <div className="flex items-center justify-center gap-4 mb-6">
       {[1, 2, 3].map((s) => (
         <div key={s} className="flex items-center">
           <div
-            className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
+            className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 ${
               s === step
-                ? 'bg-emerald-400 text-emerald-900'
+                ? 'bg-emerald-500 text-white scale-105 shadow-lg shadow-emerald-200/50'
                 : s < step
-                ? 'bg-emerald-600/60 text-white'
-                : 'bg-white/10 text-white/50'
+                ? 'bg-emerald-200 text-emerald-700'
+                : 'bg-white/20 text-white/60'
             }`}
           >
             {s < step ? <CheckCircle size={16} /> : s}
           </div>
           {s < 3 && (
-            <div
-              className={`w-12 h-0.5 mx-1 ${
-                s < step ? 'bg-emerald-500/50' : 'bg-white/10'
-              }`}
-            />
+            <div className={`w-12 h-0.5 mx-1 transition-colors ${s < step ? 'bg-emerald-300' : 'bg-white/20'}`} />
           )}
         </div>
       ))}
     </div>
   );
 
+  // ─── Reusable input component ──────────────────────────────
+  const InputField = ({ icon: Icon, label, name, type, placeholder, value, onChange, maxLength, required }) => (
+    <div className="space-y-1.5">
+      <label className="block text-sm font-medium text-gray-700">{label}</label>
+      <div className="relative group">
+        <Icon size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-emerald-500 transition-colors" />
+        <input
+          type={type}
+          name={name}
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+          maxLength={maxLength}
+          required={required}
+          className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200 hover:border-gray-300"
+        />
+      </div>
+    </div>
+  );
+
   const renderStep1 = () => (
-    <form onSubmit={handleSendCode} className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium text-emerald-100/90 mb-1.5">Full Name</label>
-        <div className="relative group">
-          <User size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-emerald-300/70" />
-          <input
-            type="text"
-            name="full_name"
-            value={formData.full_name}
-            onChange={handleChange}
-            placeholder="Enter your full name"
-            className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-emerald-200/50 focus:outline-none focus:ring-2 focus:ring-emerald-400/50"
-            required
-          />
-        </div>
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-emerald-100/90 mb-1.5">Email Address</label>
-        <div className="relative group">
-          <Mail size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-emerald-300/70" />
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            placeholder="you@example.com"
-            className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-emerald-200/50 focus:outline-none focus:ring-2 focus:ring-emerald-400/50"
-            required
-          />
-        </div>
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-emerald-100/90 mb-1.5">Phone Number</label>
-        <div className="relative group">
-          <Phone size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-emerald-300/70" />
-          <input
-            type="tel"
-            name="phone"
-            value={formData.phone}
-            onChange={handleChange}
-            placeholder="+254700000000"
-            className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-emerald-200/50 focus:outline-none focus:ring-2 focus:ring-emerald-400/50"
-            required
-          />
-        </div>
-      </div>
+    <form onSubmit={handleSendCode} className="space-y-5 animate-fadeIn">
+      <InputField
+        icon={User}
+        label="Full Name"
+        name="full_name"
+        type="text"
+        placeholder="Enter your full name"
+        value={formData.full_name}
+        onChange={handleChange}
+        required
+      />
+      <InputField
+        icon={Mail}
+        label="Email Address"
+        name="email"
+        type="email"
+        placeholder="you@example.com"
+        value={formData.email}
+        onChange={handleChange}
+        required
+      />
+      <InputField
+        icon={Phone}
+        label="Phone Number"
+        name="phone"
+        type="tel"
+        placeholder="+254700000000"
+        value={formData.phone}
+        onChange={handleChange}
+        required
+      />
       <button
         type="submit"
         disabled={isLoading}
-        className="w-full py-3.5 bg-white text-emerald-700 rounded-xl font-semibold hover:bg-emerald-50 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        className="w-full py-3.5 bg-emerald-600 text-white rounded-xl font-semibold hover:bg-emerald-700 transition-all duration-200 shadow-lg shadow-emerald-200/50 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
       >
-        {isLoading ? 'Sending code...' : 'Send Verification Code'}
-        <ArrowRight size={18} />
+        {isLoading ? (
+          <>
+            <Loader2 className="w-5 h-5 animate-spin" />
+            Sending code...
+          </>
+        ) : (
+          <>
+            Send Verification Code
+            <ArrowRight size={18} />
+          </>
+        )}
       </button>
     </form>
   );
 
   const renderStep2 = () => (
-    <form onSubmit={handleVerifyCode} className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium text-emerald-100/90 mb-1.5">Verification Code</label>
-        <div className="relative group">
-          <Shield size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-emerald-300/70" />
-          <input
-            type="text"
-            name="code"
-            value={formData.code}
-            onChange={handleChange}
-            placeholder="Enter 6‑digit code"
-            maxLength="6"
-            className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-emerald-200/50 focus:outline-none focus:ring-2 focus:ring-emerald-400/50"
-            required
-          />
-        </div>
-        <p className="text-xs text-emerald-200/60 mt-1">Code sent to {formData.email}</p>
-      </div>
+    <form onSubmit={handleVerifyCode} className="space-y-5 animate-fadeIn">
+      <InputField
+        icon={Shield}
+        label="Verification Code"
+        name="code"
+        type="text"
+        placeholder="Enter 6‑digit code"
+        value={formData.code}
+        onChange={handleChange}
+        maxLength="6"
+        required
+      />
+      <p className="text-xs text-gray-500 -mt-3">Code sent to {formData.email}</p>
       <div className="flex gap-3">
         <button
           type="submit"
           disabled={isLoading}
-          className="flex-1 py-3.5 bg-white text-emerald-700 rounded-xl font-semibold hover:bg-emerald-50 transition-all disabled:opacity-70"
+          className="flex-1 py-3.5 bg-emerald-600 text-white rounded-xl font-semibold hover:bg-emerald-700 transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
-          {isLoading ? 'Verifying...' : 'Verify Code'}
+          {isLoading ? (
+            <>
+              <Loader2 className="w-5 h-5 animate-spin" />
+              Verifying...
+            </>
+          ) : (
+            'Verify Code'
+          )}
         </button>
         <button
           type="button"
           onClick={handleResendCode}
           disabled={isLoading}
-          className="px-4 py-3.5 bg-white/10 text-white rounded-xl font-medium hover:bg-white/20 transition-all disabled:opacity-50"
+          className="px-5 py-3.5 bg-white/90 text-gray-700 rounded-xl font-medium hover:bg-white transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
         >
           Resend
         </button>
@@ -286,144 +285,115 @@ const UserRegister = () => {
   );
 
   const renderStep3 = () => (
-    <form onSubmit={handleComplete} className="space-y-4">
+    <form onSubmit={handleComplete} className="space-y-5 animate-fadeIn">
+      <InputField
+        icon={UserCheck}
+        label="Username"
+        name="username"
+        type="text"
+        placeholder="Choose a username"
+        value={formData.username}
+        onChange={handleChange}
+        required
+      />
+      <InputField
+        icon={Lock}
+        label="Password"
+        name="password"
+        type={showPassword ? 'text' : 'password'}
+        placeholder="Create a strong password"
+        value={formData.password}
+        onChange={handleChange}
+        required
+      />
+      <InputField
+        icon={Lock}
+        label="Confirm Password"
+        name="confirmPassword"
+        type={showConfirmPassword ? 'text' : 'password'}
+        placeholder="Confirm your password"
+        value={formData.confirmPassword}
+        onChange={handleChange}
+        required
+      />
       <div>
-        <label className="block text-sm font-medium text-emerald-100/90 mb-1.5">Username</label>
-        <div className="relative group">
-          <UserCheck size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-emerald-300/70" />
-          <input
-            type="text"
-            name="username"
-            value={formData.username}
-            onChange={handleChange}
-            placeholder="Choose a username"
-            className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-emerald-200/50 focus:outline-none focus:ring-2 focus:ring-emerald-400/50"
-            required
-          />
-        </div>
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-emerald-100/90 mb-1.5">Password</label>
-        <div className="relative group">
-          <Lock size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-emerald-300/70" />
-          <input
-            type={showPassword ? 'text' : 'password'}
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            placeholder="Create a strong password"
-            className="w-full pl-10 pr-12 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-emerald-200/50 focus:outline-none focus:ring-2 focus:ring-emerald-400/50"
-            required
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-emerald-300/70"
-          >
-            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-          </button>
-        </div>
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-emerald-100/90 mb-1.5">Confirm Password</label>
-        <div className="relative group">
-          <Lock size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-emerald-300/70" />
-          <input
-            type={showConfirmPassword ? 'text' : 'password'}
-            name="confirmPassword"
-            value={formData.confirmPassword}
-            onChange={handleChange}
-            placeholder="Confirm your password"
-            className="w-full pl-10 pr-12 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-emerald-200/50 focus:outline-none focus:ring-2 focus:ring-emerald-400/50"
-            required
-          />
-          <button
-            type="button"
-            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-emerald-300/70"
-          >
-            {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-          </button>
-        </div>
-      </div>
-
-      {/* NEW: Role Selection */}
-      <div>
-        <label className="block text-sm font-medium text-emerald-100/90 mb-1.5">
-          Account Type
-        </label>
-        <div className="relative group">
-          <Users size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-emerald-300/70" />
+        <label className="block text-sm font-medium text-gray-700 mb-1.5">Account Type</label>
+        <div className="relative">
+          <Users size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
           <select
             name="role"
             value={formData.role}
             onChange={handleChange}
-            className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-emerald-200/50 focus:outline-none focus:ring-2 focus:ring-emerald-400/50 focus:border-transparent appearance-none"
+            className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200 appearance-none hover:border-gray-300"
           >
-            <option value="user" className="text-gray-900">User</option>
-            <option value="admin" className="text-gray-900">Admin</option>
+            <option value="volunteer">Volunteer</option>
+            <option value="admin">Admin</option>
           </select>
-          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-            <svg className="w-4 h-4 text-emerald-300/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
             </svg>
           </div>
         </div>
-        <p className="text-xs text-emerald-200/60 mt-1">Choose whether you want to register as a regular User or an Admin.</p>
+        <p className="text-xs text-gray-500 mt-1">Choose your account type – Volunteer or Admin.</p>
       </div>
 
       <button
         type="submit"
         disabled={isLoading}
-        className="w-full py-3.5 bg-white text-emerald-700 rounded-xl font-semibold hover:bg-emerald-50 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        className="w-full py-3.5 bg-emerald-600 text-white rounded-xl font-semibold hover:bg-emerald-700 transition-all duration-200 shadow-lg shadow-emerald-200/50 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
       >
-        {isLoading ? 'Creating account...' : 'Create Account'}
-        <ArrowRight size={18} />
+        {isLoading ? (
+          <>
+            <Loader2 className="w-5 h-5 animate-spin" />
+            Creating account...
+          </>
+        ) : (
+          <>
+            Create Account
+            <ArrowRight size={18} />
+          </>
+        )}
       </button>
     </form>
   );
 
   const Message = ({ type, message }) => {
     if (!message) return null;
-    const bgColor = type === 'error' ? 'bg-red-500/20 border-red-500/30' : 'bg-emerald-500/20 border-emerald-500/30';
-    const textColor = type === 'error' ? 'text-red-200' : 'text-emerald-200';
+    const bg = type === 'error'
+      ? 'bg-red-50 border-red-200 text-red-600'
+      : 'bg-emerald-50 border-emerald-200 text-emerald-700';
     const Icon = type === 'error' ? AlertCircle : CheckCircle;
     return (
-      <div className={`flex items-center gap-2 p-3 rounded-xl border ${bgColor} ${textColor} text-sm`}>
-        <Icon size={18} className="flex-shrink-0" />
+      <div className={`flex items-center gap-2 p-3 rounded-xl border ${bg} text-sm animate-fadeIn`}>
+        <Icon size={18} className="shrink-0" />
         <span>{message}</span>
       </div>
     );
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-600 via-emerald-700 to-emerald-900 p-4 relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-400/10 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-0 left-0 w-96 h-96 bg-emerald-300/10 rounded-full blur-3xl"></div>
-      <div className="w-full max-w-md relative z-10">
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-4 mb-3">
-            <Logo size="lg" />
-            <div className="text-left">
-              <h1 className="text-4xl font-bold text-white tracking-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
-                TracePoint
-              </h1>
-              <p className="text-emerald-200/90 text-sm font-light tracking-wide italic">
-                Missing Person Reporting & Tracking System
-              </p>
-            </div>
-          </div>
-          <div className="w-20 h-1 bg-emerald-400/50 mx-auto rounded-full mt-2"></div>
-        </div>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-800 via-emerald-900 to-emerald-950 p-4">
+      <div className="w-full max-w-md">
+        {/* Premium Card */}
+        <div className="bg-white rounded-2xl shadow-2xl border border-white/20 p-8 relative overflow-hidden animate-fadeIn">
+          {/* Top accent line */}
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 to-emerald-600" />
 
-        <div className="bg-white/5 backdrop-blur-xl rounded-3xl shadow-2xl p-8 border border-white/10">
+          {/* Header */}
           <div className="mb-6">
-            <h2 className="text-3xl font-bold text-white" style={{ fontFamily: "'Playfair Display', serif" }}>
+            <h1 className="text-2xl font-bold italic text-gray-800">TracePoint</h1>
+            <p className="text-sm text-gray-500">Missing Person Reporting</p>
+          </div>
+
+          {/* Step Header */}
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-gray-800">
               {step === 1 && 'Create Account'}
               {step === 2 && 'Verify Email'}
               {step === 3 && 'Complete Profile'}
             </h2>
-            <p className="text-emerald-200/80 text-sm mt-1 font-light">
+            <p className="text-sm text-gray-500 mt-1">
               {step === 1 && 'Start by providing your contact details'}
               {step === 2 && `Enter the 6-digit code sent to ${formData.email}`}
               {step === 3 && 'Almost there! Set your username, password, and account type'}
@@ -441,21 +411,24 @@ const UserRegister = () => {
           {step === 2 && renderStep2()}
           {step === 3 && renderStep3()}
 
+          {/* Sign In Link */}
           {step === 1 && (
-            <p className="text-center text-sm text-emerald-200/80 mt-4">
+            <p className="text-center text-sm text-gray-500 mt-6">
               Already have an account?{' '}
               <button
                 type="button"
                 onClick={() => navigate('/login')}
-                className="text-white font-semibold hover:underline"
+                className="text-emerald-600 font-semibold hover:text-emerald-700 hover:underline transition"
               >
                 Sign in
               </button>
             </p>
           )}
         </div>
-        <div className="text-center mt-8">
-          <p className="text-emerald-200/40 text-xs tracking-wider">
+
+        {/* Copyright */}
+        <div className="text-center mt-6">
+          <p className="text-sm font-bold text-white drop-shadow animate-fadeIn">
             © {new Date().getFullYear()} TracePoint. All rights reserved.
           </p>
         </div>

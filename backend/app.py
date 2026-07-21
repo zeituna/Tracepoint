@@ -81,6 +81,57 @@ def create_app():
             }
         )
 
+    # ─── Placeholder endpoints for frontend ─────────────────────
+    @app.route("/api/organizations", methods=["GET"])
+    @jwt_required()
+    def get_organizations():
+        return jsonify([]), 200
+
+    @app.route("/api/organizations", methods=["POST"])
+    @jwt_required()
+    def create_organization():
+        return jsonify({"message": "Organization created"}), 201
+
+    @app.route("/api/messages", methods=["GET"])
+    @jwt_required()
+    def get_messages():
+        return jsonify([]), 200
+
+    @app.route("/api/messages", methods=["POST"])
+    @jwt_required()
+    def send_message():
+        return jsonify({"message": "Message sent"}), 201
+
+    @app.route("/api/users/stats", methods=["GET"])
+    @jwt_required()
+    def user_stats():
+        return jsonify({
+            "totalUsers": 1,
+            "activeUsers": 1,
+            "pendingVerifications": 0,
+            "recentSignups": 0
+        }), 200
+
+    @app.route("/api/cases/stats", methods=["GET"])
+    @jwt_required()
+    def cases_stats():
+        return jsonify({
+            "totalCases": 0,
+            "openCases": 0,
+            "resolvedCases": 0,
+            "pendingCases": 0
+        }), 200
+
+    @app.route("/api/cases", methods=["GET"])
+    @jwt_required()
+    def get_cases():
+        return jsonify([]), 200
+
+    @app.route("/api/notifications", methods=["GET"])
+    @jwt_required()
+    def get_notifications():
+        return jsonify([]), 200
+
     with app.app_context():
         db.create_all()
 

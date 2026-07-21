@@ -1,14 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, User, Lock, ArrowRight, Users } from 'lucide-react';
+import { Eye, EyeOff, User, Lock, ArrowRight, Users, Loader2 } from 'lucide-react';
 
-// ---- Safe API base (ensures /api is present) ----
+// ---- Safe API base ----
 const getApiBase = () => {
   let base = import.meta.env?.VITE_API_URL || process?.env?.REACT_APP_API_URL || 'http://localhost:5000/api';
   base = base.replace(/\/+$/, '');
-  if (!base.endsWith('/api')) {
-    base += '/api';
-  }
+  if (!base.endsWith('/api')) base += '/api';
   return base;
 };
 
@@ -20,7 +18,7 @@ const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
-  const [role, setRole] = useState('user'); // 'user' or 'admin'
+  const [role, setRole] = useState('user');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -30,11 +28,10 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      // Optionally send the selected role to the backend if needed
       const response = await fetch(`${API_BASE}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password, role }), // role can be included
+        body: JSON.stringify({ username, password, role }),
       });
 
       const data = await response.json();
@@ -50,14 +47,9 @@ const Login = () => {
 
       localStorage.setItem('accessToken', token);
       localStorage.setItem('user', JSON.stringify(user));
-      localStorage.setItem('selectedRole', role); // store for later use
+      localStorage.setItem('selectedRole', role);
 
-      // Redirect based on selected role
-      if (role === 'admin') {
-        navigate('/dashboard');       // admin dashboard
-      } else {
-        navigate('/user/dashboard');  // user dashboard
-      }
+      navigate(role === 'admin' ? '/dashboard' : '/user/dashboard');
     } catch (err) {
       console.error('Login error:', err);
       setError(err.message || 'Network error – please try again');
@@ -67,138 +59,123 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-600 via-emerald-700 to-emerald-900 p-4 relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-400/10 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-0 left-0 w-96 h-96 bg-emerald-300/10 rounded-full blur-3xl"></div>
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-emerald-500/5 rounded-full blur-2xl"></div>
-      
-      <div className="w-full max-w-md relative z-10">
-        <div className="bg-white/5 backdrop-blur-xl rounded-3xl shadow-2xl p-8 border border-white/10">
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-white" style={{ fontFamily: "'Playfair Display', serif" }}>
-              TracePoint
-            </h1>
-            <p className="text-emerald-200/90 text-sm mt-1 font-light" style={{ fontFamily: "'Inter', sans-serif", fontStyle: 'italic' }}>
-              Missing Person Reporting & Tracking System
-            </p>
-            <div className="w-20 h-1 bg-emerald-400/50 mx-auto rounded-full mt-3"></div>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-800 via-emerald-900 to-emerald-950 p-4">
+      <div className="w-full max-w-md">
+        {/* Card with subtle animation */}
+        <div className="bg-white rounded-2xl shadow-2xl border border-white/20 p-8 relative overflow-hidden animate-fadeIn">
+          {/* Top accent bar */}
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 to-emerald-600" />
+
+          {/* Logo / Brand */}
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold italic text-gray-800">TracePoint</h1>
+            <p className="text-sm text-gray-500">Missing Person Reporting</p>
           </div>
 
+          {/* Welcome Section */}
           <div className="mb-6">
-            <h2 className="text-2xl font-bold text-white" style={{ fontFamily: "'Playfair Display', serif" }}>
-              Welcome Back
-            </h2>
-            <p className="text-emerald-200/80 text-sm mt-1 font-light" style={{ fontFamily: "'Inter', sans-serif" }}>
-              Sign in to your account to continue
-            </p>
+            <h2 className="text-2xl font-bold text-gray-800">Welcome Back</h2>
+            <p className="text-sm text-gray-500 mt-1">Sign in to your account to continue</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label className="block text-sm font-medium text-emerald-100/90 mb-1.5" style={{ fontFamily: "'Inter', sans-serif" }}>
-                Username or Email
-              </label>
+            {/* Username / Email */}
+            <div className="space-y-1.5">
+              <label className="block text-sm font-medium text-gray-700">Username or Email</label>
               <div className="relative group">
-                <User size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-emerald-300/70 group-focus-within:text-emerald-300 transition-colors" />
+                <User size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-emerald-500 transition-colors" />
                 <input
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="Enter your username or email"
-                  className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-emerald-200/50 focus:outline-none focus:ring-2 focus:ring-emerald-400/50 focus:border-transparent transition-all duration-300"
-                  style={{ fontFamily: "'Inter', sans-serif" }}
+                  className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200 hover:border-gray-300"
                   required
                 />
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-emerald-100/90 mb-1.5" style={{ fontFamily: "'Inter', sans-serif" }}>
-                Password
-              </label>
+            {/* Password */}
+            <div className="space-y-1.5">
+              <label className="block text-sm font-medium text-gray-700">Password</label>
               <div className="relative group">
-                <Lock size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-emerald-300/70 group-focus-within:text-emerald-300 transition-colors" />
+                <Lock size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-emerald-500 transition-colors" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
-                  className="w-full pl-10 pr-12 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-emerald-200/50 focus:outline-none focus:ring-2 focus:ring-emerald-400/50 focus:border-transparent transition-all duration-300"
-                  style={{ fontFamily: "'Inter', sans-serif" }}
+                  className="w-full pl-10 pr-12 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200 hover:border-gray-300"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-emerald-300/70 hover:text-emerald-200 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
             </div>
 
-            {/* Role Selection Dropdown */}
+            {/* Role Selection */}
             <div>
-              <label className="block text-sm font-medium text-emerald-100/90 mb-1.5" style={{ fontFamily: "'Inter', sans-serif" }}>
-                Login as
-              </label>
-              <div className="relative group">
-                <Users size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-emerald-300/70 group-focus-within:text-emerald-300 transition-colors" />
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Login as</label>
+              <div className="relative">
+                <Users size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                 <select
                   value={role}
                   onChange={(e) => setRole(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-emerald-200/50 focus:outline-none focus:ring-2 focus:ring-emerald-400/50 focus:border-transparent transition-all duration-300 appearance-none"
-                  style={{ fontFamily: "'Inter', sans-serif" }}
+                  className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200 appearance-none hover:border-gray-300"
                 >
-                  <option value="user" className="text-gray-900">User</option>
-                  <option value="admin" className="text-gray-900">Admin</option>
+                  <option value="user">User</option>
+                  <option value="admin">Admin</option>
                 </select>
-                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                  <svg className="w-4 h-4 text-emerald-300/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
                   </svg>
                 </div>
               </div>
             </div>
 
+            {/* Remember me & Forgot password */}
             <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2 text-sm text-emerald-200/80 cursor-pointer" style={{ fontFamily: "'Inter', sans-serif" }}>
+              <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer hover:text-gray-800 transition">
                 <input
                   type="checkbox"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
-                  className="w-4 h-4 rounded border-white/30 bg-white/10 text-emerald-500 focus:ring-emerald-400 focus:ring-offset-0"
+                  className="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 focus:ring-offset-0"
                 />
                 Remember me
               </label>
               <button
                 type="button"
-                className="text-sm text-emerald-200/80 hover:text-white transition-colors font-medium" style={{ fontFamily: "'Inter', sans-serif" }}
+                className="text-sm text-emerald-600 hover:text-emerald-700 font-medium hover:underline transition"
               >
                 Forgot password?
               </button>
             </div>
 
+            {/* Error message */}
             {error && (
-              <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
-                <p className="text-red-400 text-sm text-center">{error}</p>
+              <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-red-600 text-sm animate-fadeIn">
+                {error}
               </div>
             )}
 
+            {/* Submit button */}
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3.5 bg-white text-emerald-700 rounded-xl font-semibold hover:bg-emerald-50 transition-all duration-300 shadow-lg hover:shadow-2xl hover:scale-[1.02] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              style={{ fontFamily: "'Inter', sans-serif" }}
+              className="w-full py-3.5 bg-emerald-600 text-white rounded-xl font-semibold hover:bg-emerald-700 transition-all duration-200 shadow-lg shadow-emerald-200/50 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isLoading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <svg className="animate-spin h-5 w-5 text-emerald-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
                   Signing in...
-                </span>
+                </>
               ) : (
                 <>
                   Sign In
@@ -207,12 +184,13 @@ const Login = () => {
               )}
             </button>
 
-            <p className="text-center text-sm text-emerald-200/80 mt-4" style={{ fontFamily: "'Inter', sans-serif" }}>
+            {/* Sign up link */}
+            <p className="text-center text-sm text-gray-500 mt-4">
               Don't have an account?{' '}
               <button
                 type="button"
                 onClick={() => navigate('/register')}
-                className="text-white font-semibold hover:underline transition-colors"
+                className="text-emerald-600 font-semibold hover:text-emerald-700 hover:underline transition"
               >
                 Sign up
               </button>
@@ -220,8 +198,9 @@ const Login = () => {
           </form>
         </div>
 
-        <div className="text-center mt-8">
-          <p className="text-emerald-200/40 text-xs tracking-wider" style={{ fontFamily: "'Inter', sans-serif" }}>
+        {/* Footer */}
+        <div className="text-center mt-6">
+          <p className="text-sm font-bold text-white drop-shadow animate-fadeIn">
             © {new Date().getFullYear()} TracePoint. All rights reserved.
           </p>
         </div>

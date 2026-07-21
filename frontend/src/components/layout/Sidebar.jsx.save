@@ -9,7 +9,6 @@ import {
   LogOut,
   Circle,
   Zap,
-  Satellite, // <-- added for GPS Tracking
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -28,15 +27,12 @@ const Sidebar = () => {
     { path: '/reports', label: 'Reports', icon: FileText },
     { path: '/map-tracking', label: 'Map Tracking', icon: MapPin },
     { path: '/facial-recognition', label: 'Facial Recognition', icon: Scan },
-    // ─── New: GPS Tracking ──────────────────────────────────
-    { path: '/gps-tracking', label: 'GPS Tracking', icon: Satellite },
-    // ──────────────────────────────────────────────────────────
+  { path: '/gps-tracking', label: 'GPS Tracking', icon: Satellite },
   ];
 
   return (
     <aside className="fixed top-0 left-0 h-full w-72 bg-white shadow-2xl border-r border-gray-100 flex flex-col z-50 transition-all duration-300">
       
-      {/* Logo */}
       <div className="flex items-center gap-3 px-6 h-20 bg-gradient-to-r from-emerald-50 to-white border-b border-gray-100">
         <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-emerald-200/60">
           TP
@@ -47,9 +43,10 @@ const Sidebar = () => {
         </div>
       </div>
 
-      {/* Navigation */}
       <nav className="flex-1 px-4 py-6 overflow-y-auto">
-        <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-[0.2em] px-2 mb-4">Main Menu</p>
+        <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-[0.2em] px-2 mb-4">
+          Main Menu
+        </p>
         <ul className="space-y-1.5">
           {menuItems.map((item) => {
             const Icon = item.icon;
@@ -81,14 +78,12 @@ const Sidebar = () => {
         </ul>
       </nav>
 
-      {/* Bottom */}
       <div className="border-t border-gray-100 px-4 py-4 space-y-3">
-        {/* Status */}
         <div className="flex items-center justify-between px-4 py-2 bg-gray-50/80 rounded-xl border border-gray-100/50">
           <div className="flex items-center gap-2">
             <span className="relative flex h-2.5 w-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
             </span>
             <span className="text-xs text-gray-600 font-medium">Online</span>
           </div>
@@ -97,7 +92,6 @@ const Sidebar = () => {
           </span>
         </div>
 
-        {/* Actions */}
         <div className="flex gap-2">
           <Link
             to="/settings"
@@ -119,7 +113,6 @@ const Sidebar = () => {
           </button>
         </div>
 
-        {/* Version */}
         <div className="flex items-center justify-center gap-1.5 text-[10px] text-gray-400">
           <Zap size={12} className="text-emerald-400" />
           <span className="tracking-wider">v2.0.0 · Secure</span>
