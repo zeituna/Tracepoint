@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { Plus, Edit, Trash2, Eye, Search, Filter } from 'lucide-react';
+import PageHeader from '../components/PageHeader';
 
 const Reports = () => {
   const [reports, setReports] = useState([]);
@@ -26,7 +28,7 @@ const Reports = () => {
       
       if (response.ok) {
         const data = await response.json();
-        setReports(data);
+        setReports(Array.isArray(data) ? data : []);
       } else {
         setError('Failed to fetch reports');
       }
@@ -57,10 +59,9 @@ const Reports = () => {
 
       if (response.ok) {
         const newReport = await response.json();
-        setReports([newReport.data, ...reports]);
+        setReports([newReport, ...reports]);
         setShowModal(false);
         resetForm();
-        alert('✅ Report created successfully!');
         fetchReports();
       } else {
         alert('❌ Failed to create report');
@@ -86,11 +87,10 @@ const Reports = () => {
 
       if (response.ok) {
         const updated = await response.json();
-        setReports(reports.map(r => r.id === updated.data.id ? updated.data : r));
+        setReports(reports.map(r => r.id === updated.id ? updated : r));
         setShowModal(false);
         setEditingReport(null);
         resetForm();
-        alert('✅ Report updated successfully!');
         fetchReports();
       } else {
         alert('❌ Failed to update report');
@@ -112,7 +112,6 @@ const Reports = () => {
 
       if (response.ok) {
         setReports(reports.filter(r => r.id !== id));
-        alert('✅ Report deleted successfully!');
         fetchReports();
       } else {
         alert('❌ Failed to delete report');
@@ -150,132 +149,159 @@ const Reports = () => {
     });
   };
 
+  const getStatusColor = (status) => {
+    const colors = {
+      active: 'bg-red-100 text-red-700',
+      pending: 'bg-yellow-100 text-yellow-700',
+      resolved: 'bg-green-100 text-green-700',
+      closed: 'bg-gray-100 text-gray-700'
+    };
+    return colors[status] || 'bg-gray-100 text-gray-700';
+  };
+
+  const getPriorityBadge = (priority) => {
+    const colors = {
+      high: 'bg-red-100 text-red-700',
+      medium: 'bg-yellow-100 text-yellow-700',
+      low: 'bg-blue-100 text-blue-700'
+    };
+    return colors[priority] || 'bg-gray-100 text-gray-700';
+  };
+
   const filteredReports = reports.filter(r =>
     r.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     r.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     r.location?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const getStatusColor = (status) => {
-    const colors = {
-      active: 'bg-green-500',
-      pending: 'bg-yellow-500',
-      resolved: 'bg-blue-500',
-      closed: 'bg-gray-500'
-    };
-    return colors[status] || 'bg-gray-500';
-  };
-
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+          className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full"
+        />
       </div>
     );
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">Missing Persons Reports</h1>
-          <p className="text-gray-500">Manage all missing person reports</p>
-          <p className="text-sm text-gray-400">Total: {reports.length} reports</p>
-        </div>
-        <button
-          onClick={() => openModal()}
-          className="bg-emerald-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-emerald-700 transition shadow-lg shadow-emerald-500/30"
-        >
-          <Plus size={20} />
-          New Report
-        </button>
-      </div>
+    <div className="p-6 md:p-8 space-y-6 bg-gradient-to-br from-slate-50/80 to-gray-100/80 min-h-screen">
+      <PageHeader
+        icon={Search}
+        title="Case Management"
+        subtitle="Manage all missing person reports"
+        actions={
+          <button
+            onClick={() => openModal()}
+            className="flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white rounded-xl text-sm font-medium hover:bg-emerald-600 transition shadow-sm"
+          >
+            <Plus size={16} />
+            New Report
+          </button>
+        }
+      />
 
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-        <input
-          type="text"
-          placeholder="Search reports..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
-        />
+      {/* Search & Filter */}
+      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+        <div className="relative flex-1 max-w-sm">
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search reports..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+          />
+        </div>
+        <div className="text-sm text-gray-400">
+          {filteredReports.length} of {reports.length} reports
+        </div>
       </div>
 
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-600 text-sm">
           {error}
         </div>
       )}
 
-      <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name / Title</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priority</th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {filteredReports.length === 0 ? (
-              <tr>
-                <td colSpan="6" className="px-6 py-4 text-center text-gray-500">No reports found</td>
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50/80 border-b border-gray-100">
+              <tr className="text-left text-xs text-gray-400 uppercase tracking-wider">
+                <th className="p-4 font-semibold">ID</th>
+                <th className="p-4 font-semibold">Title</th>
+                <th className="p-4 font-semibold">Location</th>
+                <th className="p-4 font-semibold">Status</th>
+                <th className="p-4 font-semibold">Priority</th>
+                <th className="p-4 font-semibold text-right">Actions</th>
               </tr>
-            ) : (
-              filteredReports.map((report) => (
-                <tr key={report.id} className="hover:bg-gray-50 transition">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{report.id}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{report.title}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{report.location || 'N/A'}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 rounded-full text-xs text-white ${getStatusColor(report.status)}`}>
-                      {report.status || 'Unknown'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <span className={`px-2 py-1 text-xs rounded ${
-                      report.priority === 'high' ? 'bg-red-100 text-red-800' :
-                      report.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-green-100 text-green-800'
-                    }`}>
-                      {report.priority || 'medium'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right">
-                    <div className="flex justify-end gap-2">
-                      <button
-                        onClick={() => openModal(report)}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
-                        title="Edit"
-                      >
-                        <Edit size={18} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(report.id)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
-                        title="Delete"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {filteredReports.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="p-8 text-center text-gray-400">
+                    No reports found
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-        <div className="px-6 py-3 border-t border-gray-200 text-sm text-gray-500">
-          Showing {filteredReports.length} of {reports.length} reports
+              ) : (
+                filteredReports.map((report, i) => (
+                  <motion.tr
+                    key={report.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.05 }}
+                    className="hover:bg-gray-50 transition group"
+                  >
+                    <td className="p-4 text-sm text-gray-500 font-mono">{report.id}</td>
+                    <td className="p-4 text-sm font-medium text-gray-800">{report.title}</td>
+                    <td className="p-4 text-sm text-gray-500">{report.location || 'N/A'}</td>
+                    <td className="p-4">
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(report.status)}`}>
+                        {report.status || 'Unknown'}
+                      </span>
+                    </td>
+                    <td className="p-4">
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${getPriorityBadge(report.priority)}`}>
+                        {report.priority || 'medium'}
+                      </span>
+                    </td>
+                    <td className="p-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => openModal(report)}
+                          className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                          title="Edit"
+                        >
+                          <Edit size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(report.id)}
+                          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                          title="Delete"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </motion.tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
 
+      {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md"
+          >
             <h2 className="text-xl font-bold text-gray-800 mb-4">
               {editingReport ? 'Edit Report' : 'New Report'}
             </h2>
@@ -359,7 +385,7 @@ const Reports = () => {
                 </button>
               </div>
             </form>
-          </div>
+          </motion.div>
         </div>
       )}
     </div>

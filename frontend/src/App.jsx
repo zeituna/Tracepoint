@@ -13,6 +13,7 @@ import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
 import Reports from './pages/Reports';
 import Messages from './pages/Messages';
+import Chat from './pages/Chat'; // ← Added Chat import
 import Users from './pages/Users';
 import Partners from './pages/Partners';
 import MapTracking from './pages/MapTracking';
@@ -23,6 +24,11 @@ import Settings from './pages/Settings';
 import Profile from './pages/Profile';
 import Organizations from './pages/Organizations';
 import GpsTracking from './pages/GpsTracking';
+
+// ─── New pages for sidebar sections ─────────────────────────
+import AuditLogs from './pages/AuditLogs';
+import SystemHealth from './pages/SystemHealth';
+import BackupRestore from './pages/BackupRestore';
 
 // ─── Public pages ───────────────────────────────────────────
 import HomePage from './pages/public/Home';
@@ -82,6 +88,7 @@ function App() {
         <Route path="/dashboard" element={<PrivateRoute><Layout><Dashboard /></Layout></PrivateRoute>} />
         <Route path="/reports" element={<PrivateRoute><Layout><Reports /></Layout></PrivateRoute>} />
         <Route path="/messages" element={<PrivateRoute><Layout><Messages /></Layout></PrivateRoute>} />
+        <Route path="/chat" element={<PrivateRoute><Layout><Chat /></Layout></PrivateRoute>} /> {/* ← Added Chat route */}
         <Route path="/users" element={<PrivateRoute><Layout><Users /></Layout></PrivateRoute>} />
         <Route path="/organizations" element={<PrivateRoute><Layout><Organizations /></Layout></PrivateRoute>} />
         <Route path="/map-tracking" element={<PrivateRoute><Layout><MapTracking /></Layout></PrivateRoute>} />
@@ -91,6 +98,11 @@ function App() {
         <Route path="/statistics" element={<PrivateRoute><Layout><Statistics /></Layout></PrivateRoute>} />
         <Route path="/settings" element={<PrivateRoute><Layout><Settings /></Layout></PrivateRoute>} />
         <Route path="/profile" element={<PrivateRoute><Layout><Profile /></Layout></PrivateRoute>} />
+
+        {/* ─── New routes for sidebar sections ──────────────── */}
+        <Route path="/audit-logs" element={<PrivateRoute><Layout><AuditLogs /></Layout></PrivateRoute>} />
+        <Route path="/system-health" element={<PrivateRoute><Layout><SystemHealth /></Layout></PrivateRoute>} />
+        <Route path="/backup-restore" element={<PrivateRoute><Layout><BackupRestore /></Layout></PrivateRoute>} />
 
         {/* Error pages */}
         <Route path="/403" element={<Forbidden />} />

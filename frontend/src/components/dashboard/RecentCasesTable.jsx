@@ -37,7 +37,8 @@ const RecentCasesTable = ({ cases }) => {
             ) : (
               cases.slice(0,5).map((c) => (
                 <tr key={c.id} className="hover:bg-gray-50 transition">
-                  <td className="py-3 text-sm text-gray-500 font-mono">#{c.id}</td>
+                  {/* ─── ID column without # ────────────────── */}
+                  <td className="py-3 text-sm text-gray-500 font-mono">{c.id}</td>
                   <td className="py-3 text-sm font-medium text-gray-800">{c.person}</td>
                   <td className="py-3 text-sm text-gray-500">{c.county}</td>
                   <td className="py-3 text-sm text-gray-400">{c.date}</td>
