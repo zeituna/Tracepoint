@@ -1,4 +1,3 @@
-cat > ~/Tracepoint/frontend/src/components/UserSidebar.jsx << 'EOF'
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
@@ -15,6 +14,7 @@ import {
   Bell,
   Users,
   BarChart3,
+  CheckCircle,
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -37,6 +37,7 @@ const Sidebar = () => {
     { path: '/alerts', label: 'Alerts', icon: Bell },
     { path: '/messages', label: 'Messages', icon: MessageCircle },
     { path: '/chat', label: 'Live Chat', icon: MessageCircle },
+    { path: '/admin-approval', label: 'Message Approval', icon: CheckCircle },
     { path: '/users', label: 'Users', icon: Users },
     { path: '/statistics', label: 'Statistics', icon: BarChart3 },
   ];
@@ -63,6 +64,7 @@ const Sidebar = () => {
             const Icon = item.icon;
             const active = isActive(item.path);
             const isChat = item.path === '/chat';
+            const isApproval = item.path === '/admin-approval';
             return (
               <li key={item.path}>
                 <Link
@@ -71,7 +73,7 @@ const Sidebar = () => {
                     active
                       ? 'bg-emerald-50 text-emerald-700 shadow-sm shadow-emerald-100/40'
                       : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
-                  } ${isChat ? 'border border-emerald-200/50' : ''}`}
+                  } ${isChat ? 'border border-emerald-200/50' : ''} ${isApproval ? 'border border-purple-200/50' : ''}`}
                 >
                   {active && (
                     <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-emerald-500 rounded-r-full shadow-sm shadow-emerald-200" />
@@ -80,12 +82,17 @@ const Sidebar = () => {
                     size={20}
                     className={`transition-colors ${
                       active ? 'text-emerald-600' : 'text-gray-400 group-hover:text-gray-600'
-                    } ${isChat ? 'text-emerald-500' : ''}`}
+                    } ${isChat ? 'text-emerald-500' : ''} ${isApproval ? 'text-purple-500' : ''}`}
                   />
                   <span className="text-sm font-medium">{item.label}</span>
                   {isChat && (
                     <span className="ml-auto text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">
                       New
+                    </span>
+                  )}
+                  {isApproval && (
+                    <span className="ml-auto text-[10px] bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">
+                      Admin
                     </span>
                   )}
                 </Link>
@@ -144,4 +151,3 @@ const Sidebar = () => {
 };
 
 export default Sidebar;
-EOF

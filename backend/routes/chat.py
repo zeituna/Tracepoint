@@ -5,7 +5,7 @@ from datetime import datetime
 chat_bp = Blueprint('chat', __name__, url_prefix='/api/chat')
 
 def get_db():
-    return sqlite3.connect('instance/tracepoint.db')
+    return sqlite3.connect('tracepoint.db')
 
 def dict_factory(cursor, row):
     d = {}
@@ -13,7 +13,6 @@ def dict_factory(cursor, row):
         d[col[0]] = row[idx]
     return d
 
-# ─── Get all users ──────────────────────────────────────────────
 @chat_bp.route('/users', methods=['GET'])
 def get_users():
     try:
@@ -32,7 +31,6 @@ def get_users():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# ─── Get conversations ──────────────────────────────────────────
 @chat_bp.route('/conversations/<int:user_id>', methods=['GET'])
 def get_conversations(user_id):
     try:
@@ -55,7 +53,6 @@ def get_conversations(user_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# ─── Get messages ──────────────────────────────────────────────
 @chat_bp.route('/messages/<int:conversation_id>', methods=['GET'])
 def get_messages(conversation_id):
     try:
@@ -73,7 +70,6 @@ def get_messages(conversation_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# ─── Create conversation ──────────────────────────────────────
 @chat_bp.route('/conversations', methods=['POST'])
 def create_conversation():
     try:
@@ -115,7 +111,6 @@ def create_conversation():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# ─── Send message ──────────────────────────────────────────────
 @chat_bp.route('/messages', methods=['POST'])
 def send_message():
     try:
@@ -126,21 +121,29 @@ def send_message():
         sender_type = data.get('senderType', 'user')
         sender_name = data.get('senderName', 'User')
         
+        needs_approval = sender_type == 'user'
+        approval_status = 'pending' if needs_approval else 'approved'
+        message_type = 'approval_required' if needs_approval else 'regular'
+        
         conn = get_db()
         cursor = conn.cursor()
         
         cursor.execute("""
-            INSERT INTO messages (conversation_id, message, sender_id, sender_type, sender_name, created_at, status)
-            VALUES (?, ?, ?, ?, ?, datetime('now'), 'sent')
-        """, (conversation_id, message, sender_id, sender_type, sender_name))
+            INSERT INTO messages (
+                conversation_id, message, sender_id, sender_type, sender_name, 
+                created_at, status, approval_status, message_type
+            )
+            VALUES (?, ?, ?, ?, ?, datetime('now'), 'sent', ?, ?)
+        """, (conversation_id, message, sender_id, sender_type, sender_name, approval_status, message_type))
         
         message_id = cursor.lastrowid
         
-        cursor.execute("""
-            UPDATE conversations 
-            SET last_message = ?, last_message_at = datetime('now'), unread_count = unread_count + 1
-            WHERE id = ?
-        """, (message, conversation_id))
+        if sender_type == 'admin':
+            cursor.execute("""
+                UPDATE conversations 
+                SET last_message = ?, last_message_at = datetime('now'), unread_count = unread_count + 1
+                WHERE id = ?
+            """, (message, conversation_id))
         
         conn.commit()
         
@@ -156,12 +159,96 @@ def send_message():
             'senderType': msg[4],
             'senderName': msg[5],
             'created_at': msg[9],
-            'status': 'sent'
+            'status': 'sent',
+            'approval_status': msg[11],
+            'message_type': msg[12]
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# ─── Mark messages as read ────────────────────────────────────
+@chat_bp.route('/pending-messages', methods=['GET'])
+def get_pending_messages():
+    try:
+        conn = get_db()
+        conn.row_factory = dict_factory
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT 
+                m.id,
+                m.message,
+                m.sender_id,
+                m.sender_name,
+                m.sender_type,
+                m.created_at,
+                m.approval_status,
+                u.full_name as user_name,
+                c.subject as conversation_subject
+            FROM messages m
+            LEFT JOIN users u ON m.sender_id = u.id
+            LEFT JOIN conversations c ON m.conversation_id = c.id
+            WHERE m.approval_status = 'pending' 
+            AND m.message_type = 'approval_required'
+            ORDER BY m.created_at ASC
+        """)
+        messages = cursor.fetchall()
+        conn.close()
+        return jsonify(messages)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@chat_bp.route('/messages/<int:message_id>/review', methods=['PUT'])
+def review_message(message_id):
+    try:
+        data = request.json
+        action = data.get('action')
+        admin_id = data.get('admin_id')
+        
+        conn = get_db()
+        cursor = conn.cursor()
+        
+        if action == 'approve':
+            cursor.execute("""
+                UPDATE messages 
+                SET approval_status = 'approved',
+                    reviewed_by = ?,
+                    reviewed_at = datetime('now')
+                WHERE id = ?
+            """, (admin_id, message_id))
+            
+            cursor.execute("SELECT * FROM messages WHERE id = ?", (message_id,))
+            msg = cursor.fetchone()
+            
+            cursor.execute("""
+                UPDATE conversations 
+                SET last_message = ?, 
+                    last_message_at = datetime('now'), 
+                    unread_count = unread_count + 1
+                WHERE id = ?
+            """, (msg[2], msg[1]))
+            
+            conn.commit()
+            conn.close()
+            
+            return jsonify({'success': True, 'message': 'Message approved'})
+            
+        elif action == 'reject':
+            cursor.execute("""
+                UPDATE messages 
+                SET approval_status = 'rejected',
+                    reviewed_by = ?,
+                    reviewed_at = datetime('now')
+                WHERE id = ?
+            """, (admin_id, message_id))
+            conn.commit()
+            conn.close()
+            return jsonify({'success': True, 'message': 'Message rejected'})
+            
+        else:
+            return jsonify({'error': 'Invalid action'}), 400
+            
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @chat_bp.route('/messages/read', methods=['PUT'])
 def mark_read():
     try:
@@ -175,7 +262,7 @@ def mark_read():
         cursor.execute("""
             UPDATE messages 
             SET read = 1 
-            WHERE conversation_id = ? AND sender_id != ?
+            WHERE conversation_id = ? AND sender_id != ? AND approval_status = 'approved'
         """, (conversation_id, user_id))
         
         cursor.execute("""

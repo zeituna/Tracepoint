@@ -14,6 +14,7 @@ import Dashboard from './pages/Dashboard';
 import Reports from './pages/Reports';
 import Messages from './pages/Messages';
 import Chat from './pages/Chat'; // ← Added Chat import
+import AdminApproval from './pages/AdminApproval';
 import Users from './pages/Users';
 import Partners from './pages/Partners';
 import MapTracking from './pages/MapTracking';
@@ -89,6 +90,7 @@ function App() {
         <Route path="/reports" element={<PrivateRoute><Layout><Reports /></Layout></PrivateRoute>} />
         <Route path="/messages" element={<PrivateRoute><Layout><Messages /></Layout></PrivateRoute>} />
         <Route path="/chat" element={<PrivateRoute><Layout><Chat /></Layout></PrivateRoute>} /> {/* ← Added Chat route */}
+<Route path="/admin-approval" element={<PrivateRoute><Layout><AdminApproval /></Layout></PrivateRoute>} />
         <Route path="/users" element={<PrivateRoute><Layout><Users /></Layout></PrivateRoute>} />
         <Route path="/organizations" element={<PrivateRoute><Layout><Organizations /></Layout></PrivateRoute>} />
         <Route path="/map-tracking" element={<PrivateRoute><Layout><MapTracking /></Layout></PrivateRoute>} />
