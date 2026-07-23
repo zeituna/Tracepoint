@@ -1,3 +1,4 @@
+cat > ~/Tracepoint/frontend/src/components/UserSidebar.jsx << 'EOF'
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
@@ -9,7 +10,11 @@ import {
   LogOut,
   Circle,
   Zap,
-  Satellite, // <-- added for GPS Tracking
+  Satellite,
+  MessageCircle,
+  Bell,
+  Users,
+  BarChart3,
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -27,10 +32,13 @@ const Sidebar = () => {
     { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/reports', label: 'Reports', icon: FileText },
     { path: '/map-tracking', label: 'Map Tracking', icon: MapPin },
-    { path: '/facial-recognition', label: 'Facial Recognition', icon: Scan },
-    // ─── New: GPS Tracking ──────────────────────────────────
     { path: '/gps-tracking', label: 'GPS Tracking', icon: Satellite },
-    // ──────────────────────────────────────────────────────────
+    { path: '/facial-recognition', label: 'Facial Recognition', icon: Scan },
+    { path: '/alerts', label: 'Alerts', icon: Bell },
+    { path: '/messages', label: 'Messages', icon: MessageCircle },
+    { path: '/chat', label: 'Live Chat', icon: MessageCircle },
+    { path: '/users', label: 'Users', icon: Users },
+    { path: '/statistics', label: 'Statistics', icon: BarChart3 },
   ];
 
   return (
@@ -54,6 +62,7 @@ const Sidebar = () => {
           {menuItems.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.path);
+            const isChat = item.path === '/chat';
             return (
               <li key={item.path}>
                 <Link
@@ -62,7 +71,7 @@ const Sidebar = () => {
                     active
                       ? 'bg-emerald-50 text-emerald-700 shadow-sm shadow-emerald-100/40'
                       : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
-                  }`}
+                  } ${isChat ? 'border border-emerald-200/50' : ''}`}
                 >
                   {active && (
                     <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-emerald-500 rounded-r-full shadow-sm shadow-emerald-200" />
@@ -71,9 +80,14 @@ const Sidebar = () => {
                     size={20}
                     className={`transition-colors ${
                       active ? 'text-emerald-600' : 'text-gray-400 group-hover:text-gray-600'
-                    }`}
+                    } ${isChat ? 'text-emerald-500' : ''}`}
                   />
                   <span className="text-sm font-medium">{item.label}</span>
+                  {isChat && (
+                    <span className="ml-auto text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">
+                      New
+                    </span>
+                  )}
                 </Link>
               </li>
             );
@@ -130,3 +144,4 @@ const Sidebar = () => {
 };
 
 export default Sidebar;
+EOF

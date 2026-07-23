@@ -4,3 +4,4 @@ venv/
 .venv/
 .env
 instance/*.db
+node_modules/
