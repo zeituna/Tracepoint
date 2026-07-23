@@ -1,4 +1,3 @@
-
 import os
 from flask import Flask, jsonify, request
 from flask_cors import CORS
@@ -65,7 +64,7 @@ def handle_send_message(data):
         sender_name = data.get('senderName', 'User')
         
         import sqlite3
-        conn = sqlite3.connect('instance/tracepoint.db')
+        conn = sqlite3.connect('tracepoint.db')
         cursor = conn.cursor()
         
         cursor.execute("""
@@ -109,7 +108,7 @@ def handle_mark_read(data):
     
     try:
         import sqlite3
-        conn = sqlite3.connect('instance/tracepoint.db')
+        conn = sqlite3.connect('tracepoint.db')
         cursor = conn.cursor()
         cursor.execute("""
             UPDATE messages 
@@ -163,51 +162,6 @@ def internal_error(error):
 # ─── Create Tables ─────────────────────────────────────────────
 with app.app_context():
     db.create_all()
-
-    # Chat tables (conversations/messages) + users.online column.
-    # Folded in here so a fresh clone doesn't need a manual
-    # `python add_chat_tables.py` step. Statements are idempotent
-    # (CREATE TABLE IF NOT EXISTS / guarded ALTER TABLE), so this is
-    # safe to run on every startup. add_chat_tables.py is kept as-is
-    # for manual/CI use.
-    import sqlite3
-    _chat_db_path = os.path.join(os.path.dirname(__file__), 'instance', 'tracepoint.db')
-    _conn = sqlite3.connect(_chat_db_path)
-    _cursor = _conn.cursor()
-    _cursor.execute("""
-        CREATE TABLE IF NOT EXISTS conversations (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER NOT NULL,
-            admin_id INTEGER DEFAULT 1,
-            subject TEXT NOT NULL,
-            last_message TEXT,
-            last_message_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            unread_count INTEGER DEFAULT 0,
-            user_name TEXT,
-            user_type TEXT DEFAULT 'user',
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
-    _cursor.execute("""
-        CREATE TABLE IF NOT EXISTS messages (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            conversation_id INTEGER NOT NULL,
-            message TEXT NOT NULL,
-            sender_id INTEGER NOT NULL,
-            sender_type TEXT DEFAULT 'user',
-            sender_name TEXT,
-            read BOOLEAN DEFAULT 0,
-            status TEXT DEFAULT 'sent',
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
-    _cursor.execute("PRAGMA table_info(users)")
-    _existing_cols = {row[1] for row in _cursor.fetchall()}
-    if 'online' not in _existing_cols:
-        _cursor.execute("ALTER TABLE users ADD COLUMN online BOOLEAN DEFAULT 0")
-    _conn.commit()
-    _conn.close()
-
     print('✅ Database tables created/verified')
 
 if __name__ == '__main__':
