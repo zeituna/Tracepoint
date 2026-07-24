@@ -6,8 +6,11 @@ load_dotenv()
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-production'
     
-    # Hardcoded absolute path for SQLite
-    SQLALCHEMY_DATABASE_URI = 'sqlite:////home/zeitun/Tracepoint/backend/tracepoint.db'
+    # NOTE: Flask-SQLAlchemy 3.x resolves relative sqlite paths against
+    # app.instance_path (already .../backend/instance), so this must be
+    # just the filename, not 'instance/tracepoint.db', or it silently
+    # resolves to a nonexistent nested 'instance/instance/tracepoint.db'.
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///tracepoint.db'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY') or 'jwt-secret-key-change-in-production'

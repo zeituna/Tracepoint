@@ -3,6 +3,7 @@ from .missing_person import MissingPerson
 from .email_verification import EmailVerification
 from .phone_verification import PhoneVerification
 from .password_reset import PasswordReset
+from .organization import Organization
 
 __all__ = [
     "User",
@@ -10,4 +11,5 @@ __all__ = [
     "EmailVerification",
     "PhoneVerification",
     "PasswordReset",
+    "Organization",
 ]

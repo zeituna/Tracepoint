@@ -24,6 +24,8 @@ import Statistics from './pages/Statistics';
 import Settings from './pages/Settings';
 import Profile from './pages/Profile';
 import Organizations from './pages/Organizations';
+import PoliceOfficers from './pages/PoliceOfficers';
+import RolesPermissions from './pages/RolesPermissions';
 import GpsTracking from './pages/GpsTracking';
 
 // ─── New pages for sidebar sections ─────────────────────────
@@ -92,7 +94,9 @@ function App() {
         <Route path="/chat" element={<PrivateRoute><Layout><Chat /></Layout></PrivateRoute>} /> {/* ← Added Chat route */}
 <Route path="/admin-approval" element={<PrivateRoute><Layout><AdminApproval /></Layout></PrivateRoute>} />
         <Route path="/users" element={<PrivateRoute><Layout><Users /></Layout></PrivateRoute>} />
+        <Route path="/users?role=police" element={<PrivateRoute><Layout><PoliceOfficers /></Layout></PrivateRoute>} />
         <Route path="/organizations" element={<PrivateRoute><Layout><Organizations /></Layout></PrivateRoute>} />
+        <Route path="/settings?tab=roles" element={<PrivateRoute><Layout><RolesPermissions /></Layout></PrivateRoute>} />
         <Route path="/map-tracking" element={<PrivateRoute><Layout><MapTracking /></Layout></PrivateRoute>} />
         <Route path="/gps-tracking" element={<PrivateRoute><Layout><GpsTracking /></Layout></PrivateRoute>} />
         <Route path="/facial-recognition" element={<PrivateRoute><Layout><FacialRecognition /></Layout></PrivateRoute>} />

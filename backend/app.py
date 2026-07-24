@@ -7,7 +7,7 @@ from flask_socketio import SocketIO, emit, join_room, leave_room
 from config import Config
 from database import db
 
-# ─── Import Routes ──────────────────────────────────────────────
+# ─── Import Routes (Only the ones that exist) ──────────────────
 from routes.auth import auth_bp
 from routes.reports import reports_bp
 from routes.chat import chat_bp
